@@ -64,7 +64,7 @@ class LEClient
      * Initiates the LetsEncrypt main client.
      *
      * @param array		$email	 		The array of strings containing e-mail addresses. Only used in this function when creating a new account.
-	 * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
+		 * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
      * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
      * @param string 	$keysDir 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
      * @param string 	$accountKeysDir The directory in which the account keys are stored. Is a subdir inside $keysDir. Defaults to '__account/'.(optional)
@@ -105,6 +105,7 @@ class LEClient
      *
      * @param string	$basename	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 	$domains 	The array of strings containing the domain names on the certificate.
+		 * @param string 	$keyType 		Type of the key we want to use for certificate. Supported values are "rsa" (default) and "ec".
      * @param string 	$notBefore	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid. Defaults to the moment the order is finalized. (optional)
      * @param string 	$notAfter  	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid. Defaults to 90 days past the moment the order is finalized. (optional)
      *

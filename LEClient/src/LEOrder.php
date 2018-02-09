@@ -65,6 +65,7 @@ class LEOrder
      * @param string 		$keysDir 	The main directory in which all keys (and certificates), including account keys, are stored.
      * @param string 		$basename 	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 		$domains 	The array of strings containing the domain names on the certificate.
+		 * @param string 		$keyType 	Type of the key we want to use for certificate. Supported values are "rsa" (default) and "ec".
      * @param string 		$notBefore 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid.
      * @param string 		$notAfter 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid.
      */
