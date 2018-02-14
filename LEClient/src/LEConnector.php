@@ -3,7 +3,7 @@
 /**
  * LetsEncrypt Connector class, containing the functions necessary to sign with JSON Web Key and Key ID, and perform GET, POST and HEAD requests.
  *
- * PHP version 5.2
+ * PHP version 7.1.0
  * 
  * MIT License
  * 
@@ -30,7 +30,7 @@
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.0.0
+ * @version    1.1.0
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */

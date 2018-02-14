@@ -3,7 +3,7 @@ PHP LetsEncrypt client library for ACME v2. The aim of this client is to make an
 
 ## Current version
 
-The current version is 1.0.0.
+The current version is 1.1.0
 
 This client was developed with the use of the LetsEncrypt staging server for version 2. While version 2 is still being developed and implemented by LetsEncrypt at this moment, the project might be subject to change.
 
@@ -15,7 +15,7 @@ Also have a look at the [LetsEncrypt documentation](https://letsencrypt.org/docs
 
 ### Prerequisites
 
-The minimum required PHP version is 5.2. 
+The minimum required PHP version is 7.1.0 due to the implementation of ECDSA. Version 1.0.0 does still work with PHP 5.2 since it is not yet compatible with ECDSA, and will be kept available, but will not be maintained.
 
 This client also depends on cURL and OpenSSL.
 
@@ -43,7 +43,7 @@ $client = new LEClient($email);                               // Initiating a ba
 $client = new LEClient($email, true);                         // Initiating a LECLient and use the LetsEncrypt staging URL.
 $client = new LEClient($email, true, LEClient::LOG_STATUS);   // Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
 ```
-The client will automatically create a new account if there isn't one found. It will forward the e-mail address(es) supplied during initiation, as shown above. 
+The client will automatically create a new account if there isn't one found. It will forward the e-mail address(es) supplied during initiation, as shown above.
 
 <br />
 
@@ -58,9 +58,10 @@ $acct->deactivateAccount();     // Deactivates the account with LetsEncrypt.
 
 Creating a certificate order instance. If there is an order found, stored locally, it will use this order. Otherwise, it will create a new order. If the supplied domain names don't match the order, a new order is created as well. The construction of the LetsEncrypt Order instance:
 ```php
-$order = $client->getOrCreateOrder($basename, $domains);                          // Get or create order. The basename is preferably the top domain name. This will be the directory in which the keys are stored. Supply an array of string domain names to create a certificate for.
-$order = $client->getOrCreateOrder($basename, $domains, $notBefore);              // Get or create order. Supply a notBefore date as a string similar to 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss).
-$order = $client->getOrCreateOrder($basename, $domains, $notBefore, $notAfter);   // Get or create order. Supply a notBefore and notAfter date as a string similar to 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss).
+$order = $client->getOrCreateOrder($basename, $domains);                          			// Get or create order. The basename is preferably the top domain name. This will be the directory in which the keys are stored. Supply an array of string domain names to create a certificate for.
+$order = $client->getOrCreateOrder($basename, $domains, $keyType);              			// Get or create order. keyType can be set to "ec" to get ECDSA certificate. "rsa" is default value.
+$order = $client->getOrCreateOrder($basename, $domains, $keyType, $notBefore);              // Get or create order. Supply a notBefore date as a string similar to 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss).
+$order = $client->getOrCreateOrder($basename, $domains, $keyType, $notBefore, $notAfter);   // Get or create order. Supply a notBefore and notAfter date as a string similar to 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss).
 ```
 <br />
 
@@ -82,11 +83,12 @@ $revoke     = $order->revokeCertificate($reason);                           // R
 Supportive functions:
 ```php
 LEFunctions::RSAGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  // Generate a RSA keypair in the given directory. Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
+LEFunctions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  	// Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
 LEFunctions::Base64UrlSafeEncode($input);                                   // Encode the input string as a base64 URL safe string.
 LEFunctions::Base64UrlSafeDecode($input);                                   // Decode a base64 URL safe encoded string.
 LEFunctions::log($data, $function);                                         // Print the data. The function variable is optional and defaults to the calling function's name.
-LEFunctions::checkHTTPChallenge($domain, $token, $keyAuthorization);        // Checks whether the HTTP challenge is valid. Performing authorizations is described further on. 
-LEFunctions::checkDNSChallenge($domain, $DNSDigest);                        // Checks whether the DNS challenge is valid. Performing authorizations is described further on. 
+LEFunctions::checkHTTPChallenge($domain, $token, $keyAuthorization);        // Checks whether the HTTP challenge is valid. Performing authorizations is described further on.
+LEFunctions::checkDNSChallenge($domain, $DNSDigest);                        // Checks whether the DNS challenge is valid. Performing authorizations is described further on.
 LEFunctions::createhtaccess($directory);									// Created a simple .htaccess file in the directory supplied, denying all visitors.
 ```
 
@@ -157,7 +159,7 @@ The DNS record name also depends on your provider, therefore getPendingAuthoriza
 
 ## Full example
 
-For both HTTP and DNS authorizations, a full example is available in the project's main code directory. The HTTP authorization example is contained in one file. As described above, the DNS authorization example is split into two parts, to allow for the DNS record to update in the meantime. While the TTL of the record might be low, it can sometimes take some time for your provider to update your DNS records after an amendment. 
+For both HTTP and DNS authorizations, a full example is available in the project's main code directory. The HTTP authorization example is contained in one file. As described above, the DNS authorization example is split into two parts, to allow for the DNS record to update in the meantime. While the TTL of the record might be low, it can sometimes take some time for your provider to update your DNS records after an amendment.
 
 If you can't get these examples, or the client library to work, try and have a look at the LetsEncrypt documentation mentioned above as well.
 
