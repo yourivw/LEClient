@@ -41,6 +41,7 @@ class LEOrder
 	private $keysDir;
 	private $basename;
 	private $orderDir;
+	private $orderURL;
 	private $keyType;
 
 	public $status;
@@ -80,10 +81,10 @@ class LEOrder
 
 		if(file_exists($this->orderDir) AND file_exists($this->orderDir . 'private.pem') AND file_exists($this->orderDir . 'public.pem') AND file_exists($this->orderDir . 'order'))
 		{
-			$orderURL = file_get_contents($this->orderDir . '/order');
-			if (filter_var($orderURL, FILTER_VALIDATE_URL))
+			$this->orderURL = file_get_contents($this->orderDir . '/order');
+			if (filter_var($this->orderURL, FILTER_VALIDATE_URL))
 			{
-				$get = $this->connector->get($orderURL);
+				$get = $this->connector->get($this->orderURL);
 				if(strpos($get['header'], "200 OK") !== false)
 				{
 					$orderdomains = array_map(function($ident) { return $ident['value']; }, $get['body']['identifiers']);
@@ -154,7 +155,8 @@ class LEOrder
 			{
 				if(preg_match('~Location: (\S+)~i', $post['header'], $matches))
 				{
-					file_put_contents($this->orderDir . 'order', trim($matches[1]));
+					$this->orderURL = trim($matches[1])
+					file_put_contents($this->orderDir . 'order', $this->orderURL);
 					if ($this->keyType == "rsa") 
 					{
 						LEFunctions::RSAgenerateKeys($this->orderDir); 
@@ -199,7 +201,7 @@ class LEOrder
      */
 	private function updateOrderData()
 	{
-		$get = $this->connector->get($orderURL);
+		$get = $this->connector->get($this->orderURL);
 		if(strpos($get['header'], "200 OK") !== false)
 		{
 			$this->status = $get['body']['status'];
