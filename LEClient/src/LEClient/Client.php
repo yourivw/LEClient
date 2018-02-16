@@ -10,6 +10,7 @@ require_once('Account.php');
 require_once('Order.php');
 require_once('Authorization.php');
 require_once('Functions.php');
+require_once('Log.php');
 
 /**
  * Main LetsEncrypt Client class, works as a framework for the LEConnector, LEAccount, LEOrder and LEAuthorization classes.
@@ -58,25 +59,22 @@ class Client
 
 	private $log;
 
-	const LOG_OFF = 0;		// Logs no messages or faults, except Runtime Exceptions.
-	const LOG_STATUS = 1;	// Logs only messages and faults.
-	const LOG_DEBUG = 2;	// Logs messages, faults and raw responses from HTTP requests.
-
     /**
      * Initiates the LetsEncrypt main client.
      *
      * @param array		$email	 		The array of strings containing e-mail addresses. Only used in this function when creating a new account.
 	 * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
-     * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
+     * @param int 		$logLevel			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
      * @param string 	$keysDir 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
      * @param string 	$accountKeysDir The directory in which the account keys are stored. Is a subdir inside $keysDir. Defaults to '__account/'.(optional)
      */
-	public function __construct($email, $staging = false, $log = Client::LOG_OFF, $keysDir = 'keys/', $accountKeysDir = '__account/')
+	public function __construct($email, $staging = false, $logLevel = Log::LEVEL_OFF, $keysDir = 'keys/', $accountKeysDir = '__account/')
 	{
 		if(substr($keysDir, -1) !== '/') $keysDir .= '/';
 		if(substr($accountKeysDir, -1) !== '/') $accountKeysDir .= '/';
 
-		$this->log = $log;
+		$this->log = new Log($logLevel);
+
 		if($staging) $this->baseURL = $this->stagingBaseURL;
 		$this->keysDir = $keysDir;
 		$this->accountKeysDir = $this->keysDir . $accountKeysDir;
@@ -88,7 +86,7 @@ class Client
 		if(!file_exists($this->accountKeysDir)) mkdir($this->accountKeysDir, 0777, true);
 		$this->connector = new Connector($this->log, $this->baseURL, $this->accountKeysDir);
 		$this->account = new Account($this->connector, $this->log, $email, $this->accountKeysDir);
-		if($this->log) Functions::log('LEClient finished constructing', 'function LEClient __construct');
+		$this->log->add(Log::LEVEL_STATUS, 'LEClient finished constructing', 'function LEClient __construct');
 	}
 
 

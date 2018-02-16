@@ -56,8 +56,8 @@ class Connector
 	
     /**
      * Initiates the LetsEncrypt Connector class.
-     * 
-     * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
+     *
+     * @param Log 		$log 		    Common Log instance
      * @param string	$baseURL 		The LetsEncrypt server URL to make requests to.
      * @param string	$accountKeysDir The directory in which the account keys are stored.
      */
@@ -139,7 +139,7 @@ class Connector
         $body = substr($response, $header_size);
 		$jsonbody = json_decode($body, true);
 		$jsonresponse = array('request' => $method . ' ' . $requestURL, 'header' => $header, 'body' => $jsonbody === null ? $body : $jsonbody);
-		if($this->log >= Client::LOG_DEBUG) Functions::log($jsonresponse);
+		$this->log->add(Log::LEVEL_DEBUG, $jsonresponse);
 		
 		if(	(($method == 'POST' OR $method == 'GET') AND strpos($header, "200 OK") === false AND strpos($header, "201 Created") === false) OR 
 			($method == 'HEAD' AND strpos($header, "204 No Content") === false))

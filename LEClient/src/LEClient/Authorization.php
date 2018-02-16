@@ -51,8 +51,8 @@ class Authorization
     /**
      * Initiates the LetsEncrypt Authorization class. Child of a LetsEncrypt Order instance.
      * 
-     * @param Connector	$connector			The LetsEncrypt Connector instance to use for HTTP requests.
-     * @param int 			$log 				The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
+     * @param Connector	    $connector		    The LetsEncrypt Connector instance to use for HTTP requests.
+     * @param Log 			$log 			    Common Log instance
      * @param string 		$authorizationURL 	The URL of the authorization, given by a LetsEncrypt order request.
      */
 	public function __construct($connector, $log, $authorizationURL)
@@ -71,7 +71,7 @@ class Authorization
 		}
 		else
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
+			$this->log->add(Log::LEVEL_STATUS, 'Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
 		}
 	}
 	
@@ -91,7 +91,7 @@ class Authorization
 		}
 		else
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
+			$this->log->add(Log::LEVEL_STATUS, 'Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
 		}
 	}
 	
