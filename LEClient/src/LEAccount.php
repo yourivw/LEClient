@@ -1,7 +1,5 @@
 <?php
 
-namespace LEClient;
-
 /**
  * LetsEncrypt Account class, containing the functions and data associated with a LetsEncrypt account.
  *
@@ -36,7 +34,7 @@ namespace LEClient;
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class Account
+class LEAccount
 {
 	private $connector;
 	private $accountKeysDir;
@@ -54,8 +52,8 @@ class Account
     /**
      * Initiates the LetsEncrypt Account class.
      * 
-     * @param Connector	$connector 		The LetsEncrypt Connector instance to use for HTTP requests.
-     * @param Log 			$log 			Common Log instance
+     * @param LEConnector	$connector 		The LetsEncrypt Connector instance to use for HTTP requests.
+     * @param int 			$log 			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
      * @param array 		$email	 		The array of strings containing e-mail addresses. Only used when creating a new account.
      * @param string 		$accountKeysDir The directory in which the account keys are stored. Is a subdir inside $keysDir.
      */
@@ -67,8 +65,8 @@ class Account
 		
 		if(!file_exists($this->accountKeysDir . 'private.pem') OR !file_exists($this->accountKeysDir . 'public.pem')) 
 		{
-		    $this->log->add(Log::LEVEL_STATUS, 'No account found, attempting to create account.', 'function LEAccount __construct');
-			Functions::RSAgenerateKeys($this->accountKeysDir);
+			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('No account found, attempting to create account.', 'function LEAccount __construct');
+			LEFunctions::RSAgenerateKeys($this->accountKeysDir);
 			$this->connector->accountURL = $this->createLEAccount($email);
 		}
 		else
@@ -84,7 +82,7 @@ class Account
      * 
      * @param array 	$email 	The array of strings containing e-mail addresses.
      * 
-     * @return object|bool	Returns the new account URL when the account was successfully created, false if not.
+     * @return object	Returns the new account URL when the account was successfully created, false if not.
      */
 	private function createLEAccount($email)
 	{
@@ -102,7 +100,7 @@ class Account
     /**
      * Gets the LetsEncrypt account URL associated with the stored account keys.
      * 
-     * @return object|bool	Returns the account URL if it is found, or false when none is found.
+     * @return object	Returns the account URL if it is found, or false when none is found.	
      */
 	private function getLEAccount()
 	{
@@ -161,7 +159,7 @@ class Account
 			$this->initialIp = $post['body']['initialIp'];
 			$this->createdAt = $post['body']['createdAt'];
 			$this->status = $post['body']['status'];
-			$this->log->add(Log::LEVEL_STATUS, 'Account data updated.', 'function updateAccount');
+			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account data updated.', 'function updateAccount');
 			return true;
 		}
 		else
@@ -177,14 +175,14 @@ class Account
      */
 	public function changeAccountKeys()
 	{
-		Functions::RSAgenerateKeys($this->accountKeysDir, 'newPrivate.pem', 'newPublic.pem');
+		LEFunctions::RSAgenerateKeys($this->accountKeysDir, 'newPrivate.pem', 'newPublic.pem');
 		$privateKey = openssl_pkey_get_private(file_get_contents($this->accountKeysDir . 'newPrivate.pem'));
 		$details = openssl_pkey_get_details($privateKey);
 		
-		$innerPayload = array('account' => $this->connector->accountURL, 'newKey' => array(
+		$innerPayload = array('account' => $this->accountURL, 'newKey' => array(
 			"kty" => "RSA",
-			"n" => Functions::Base64UrlSafeEncode($details["rsa"]["n"]),
-			"e" => Functions::Base64UrlSafeEncode($details["rsa"]["e"])
+			"n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"]),
+			"e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"])
 		));
 		$outerPayload = $this->connector->signRequestJWK($innerPayload, $this->connector->keyChange, 'newPrivate.pem');
 		$sign = $this->connector->signRequestKid($outerPayload, $this->connector->accountURL, $this->connector->keyChange);
@@ -198,7 +196,7 @@ class Account
 			rename($this->accountKeysDir . 'newPrivate.pem', $this->accountKeysDir . 'private.pem');
 			rename($this->accountKeysDir . 'newPublic.pem', $this->accountKeysDir . 'public.pem');
 			
-			$this->log->add(Log::LEVEL_STATUS, 'Account keys changed.', 'function changeAccountKey');
+			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account keys changed.', 'function changeAccountKey');
 			return true;
 		}
 		else
@@ -219,8 +217,7 @@ class Account
 		if(strpos($post['header'], "200 OK") !== false)
 		{
 			$this->connector->accountDeactivated = true;
-			$this->log->add(Log::LEVEL_STATUS, 'Account deactivated.', 'function deactivateAccount');
-			return true;
+			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account deactivated.', 'function deactivateAccount');
 		}
 		else
 		{
@@ -228,3 +225,5 @@ class Account
 		}
 	}
 }
+
+?>

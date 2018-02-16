@@ -1,6 +1,13 @@
 <?php
 
-namespace LEClient;
+/**
+ * Load the dependencies for the LetsEncrypt Client
+ */
+require_once('src/LEConnector.php');
+require_once('src/LEAccount.php');
+require_once('src/LEOrder.php');
+require_once('src/LEAuthorization.php');
+require_once('src/LEFunctions.php');
 
 /**
  * Main LetsEncrypt Client class, works as a framework for the LEConnector, LEAccount, LEOrder and LEAuthorization classes.
@@ -36,7 +43,7 @@ namespace LEClient;
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class Client
+class LEClient
 {
 	private $baseURL = 			'https://acme-v02.api.letsencrypt.org';
 	private $stagingBaseURL = 	'https://acme-staging-v02.api.letsencrypt.org';
@@ -49,41 +56,44 @@ class Client
 
 	private $log;
 
+	const LOG_OFF = 0;		// Logs no messages or faults, except Runtime Exceptions.
+	const LOG_STATUS = 1;	// Logs only messages and faults.
+	const LOG_DEBUG = 2;	// Logs messages, faults and raw responses from HTTP requests.
+
     /**
      * Initiates the LetsEncrypt main client.
      *
      * @param array		$email	 		The array of strings containing e-mail addresses. Only used in this function when creating a new account.
 	 * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
-     * @param int 		$logLevel			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
+     * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
      * @param string 	$keysDir 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
      * @param string 	$accountKeysDir The directory in which the account keys are stored. Is a subdir inside $keysDir. Defaults to '__account/'.(optional)
      */
-	public function __construct($email, $staging = false, $logLevel = Log::LEVEL_OFF, $keysDir = 'keys/', $accountKeysDir = '__account/')
+	public function __construct($email, $staging = false, $log = LEClient::LOG_OFF, $keysDir = 'keys/', $accountKeysDir = '__account/')
 	{
 		if(substr($keysDir, -1) !== '/') $keysDir .= '/';
 		if(substr($accountKeysDir, -1) !== '/') $accountKeysDir .= '/';
 
-		$this->log = new Log($logLevel);
-
+		$this->log = $log;
 		if($staging) $this->baseURL = $this->stagingBaseURL;
 		$this->keysDir = $keysDir;
 		$this->accountKeysDir = $this->keysDir . $accountKeysDir;
 		if(!file_exists($this->keysDir))
 		{
 			mkdir($this->keysDir, 0777, true);
-			Functions::createhtaccess($this->keysDir);
+			LEFunctions::createhtaccess($this->keysDir);
 		}
 		if(!file_exists($this->accountKeysDir)) mkdir($this->accountKeysDir, 0777, true);
-		$this->connector = new Connector($this->log, $this->baseURL, $this->accountKeysDir);
-		$this->account = new Account($this->connector, $this->log, $email, $this->accountKeysDir);
-		$this->log->add(Log::LEVEL_STATUS, 'LEClient finished constructing', 'function LEClient __construct');
+		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeysDir);
+		$this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeysDir);
+		if($this->log) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
 	}
 
 
     /**
      * Returns the LetsEncrypt account used in the current client.
 	 *
-	 * @return Account	The LetsEncrypt Account instance used by the client.
+	 * @return LEAccount	The LetsEncrypt Account instance used by the client.
      */
 	public function getAccount()
 	{
@@ -99,10 +109,11 @@ class Client
      * @param string 	$notBefore	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid. Defaults to the moment the order is finalized. (optional)
      * @param string 	$notAfter  	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid. Defaults to 90 days past the moment the order is finalized. (optional)
      *
-     * @return Order	The LetsEncrypt Order instance which is either retrieved or created.
+     * @return LEOrder	The LetsEncrypt Order instance which is either retrieved or created.
      */
 	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa', $notBefore = '', $notAfter = '')
 	{
-		return new Order($this->connector, $this->log, $this->keysDir, $basename, $domains, $keyType, $notBefore, $notAfter);
+		return new LEOrder($this->connector, $this->log, $this->keysDir, $basename, $domains, $keyType, $notBefore, $notAfter);
 	}
 }
+?>

@@ -1,7 +1,5 @@
 <?php
 
-namespace LEClient;
-
 /**
  * LetsEncrypt Functions class, supplying the LetsEncrypt Client with supportive functions.
  *
@@ -36,7 +34,7 @@ namespace LEClient;
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class Functions
+class LEFunctions
 {
     /**
      * Generates a new RSA keypair and saves both keys to a new file.
@@ -45,7 +43,7 @@ class Functions
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
      */
-	public static function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
+	public function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
 	{
 		$res = openssl_pkey_new(array(
 			"private_key_type" => OPENSSL_KEYTYPE_RSA,
@@ -71,7 +69,7 @@ class Functions
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
      */
-	public static function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
+	public function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
 	{
 	   if (version_compare(PHP_VERSION, '7.1.0') == -1) throw new \RuntimeException("PHP 7.1+ required for EC keys");
 
@@ -121,6 +119,26 @@ class Functions
         return base64_decode(strtr($input, '-_', '+/'));
     }
 
+
+
+    /**
+     * Outputs a log message.
+     *
+     * @param object	$data		The data to print.
+     * @param string	$function	The function name to print above. Defaults to the calling function's name from the stacktrace. (optional)
+     */
+	public function log($data, $function = '')
+	{
+		$e = new Exception();
+		$trace = $e->getTrace();
+		$function = $function == '' ? 'function ' .  $trace[3]['function'] . ' (function ' . $trace[2]['function'] . ')' : $function;
+		echo '<b>' . date('d-m-Y H:i:s') . ', ' . $function . ':</b><br>';
+		print_r($data);
+		echo '<br><br>';
+	}
+
+
+
     /**
      * Makes a request to the HTTP challenge URL and checks whether the authorization is valid for the given $domain.
      *
@@ -130,7 +148,7 @@ class Functions
      *
      * @return boolean	Returns true if the challenge is valid, false if not.
      */
-	public static function checkHTTPChallenge($domain, $token, $keyAuthorization)
+	public function checkHTTPChallenge($domain, $token, $keyAuthorization)
 	{
 		$requestURL = $domain . '/.well-known/acme-challenge/' . $token;
 		$handle = curl_init();
@@ -148,7 +166,7 @@ class Functions
      *
      * @return boolean	Returns true if the challenge is valid, false if not.
      */
-	public static function checkDNSChallenge($domain, $DNSDigest)
+	public function checkDNSChallenge($domain, $DNSDigest)
 	{
 		$DNS = '_acme-challenge.' . str_replace('*.', '', $domain);
 		$records = dns_get_record($DNS, DNS_TXT);
@@ -166,8 +184,10 @@ class Functions
      *
      * @param string	$directory	The directory in which to put the .htaccess file.
      */
-	public static function createhtaccess($directory)
+	public function createhtaccess($directory)
 	{
 		file_put_contents($directory . '.htaccess', "order deny,allow\ndeny from all");
 	}
 }
+
+?>
