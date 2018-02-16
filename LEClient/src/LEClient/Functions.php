@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Functions class, supplying the LetsEncrypt Client with supportive functions.
  *
@@ -34,7 +36,7 @@
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class LEFunctions
+class Functions
 {
     /**
      * Generates a new RSA keypair and saves both keys to a new file.
@@ -129,7 +131,7 @@ class LEFunctions
      */
 	public static function log($data, $function = '')
 	{
-		$e = new Exception();
+		$e = new \Exception();
 		$trace = $e->getTrace();
 		$function = $function == '' ? 'function ' .  $trace[3]['function'] . ' (function ' . $trace[2]['function'] . ')' : $function;
 		echo '<b>' . date('d-m-Y H:i:s') . ', ' . $function . ':</b><br>';

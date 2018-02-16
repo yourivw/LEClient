@@ -1,13 +1,15 @@
 <?php
 
+namespace LEClient;
+
 /**
  * Load the dependencies for the LetsEncrypt Client
  */
-require_once('src/LEConnector.php');
-require_once('src/LEAccount.php');
-require_once('src/LEOrder.php');
-require_once('src/LEAuthorization.php');
-require_once('src/LEFunctions.php');
+require_once('Connector.php');
+require_once('Account.php');
+require_once('Order.php');
+require_once('Authorization.php');
+require_once('Functions.php');
 
 /**
  * Main LetsEncrypt Client class, works as a framework for the LEConnector, LEAccount, LEOrder and LEAuthorization classes.
@@ -43,7 +45,7 @@ require_once('src/LEFunctions.php');
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class LEClient
+class Client
 {
 	private $baseURL = 			'https://acme-v02.api.letsencrypt.org';
 	private $stagingBaseURL = 	'https://acme-staging-v02.api.letsencrypt.org';
@@ -69,7 +71,7 @@ class LEClient
      * @param string 	$keysDir 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
      * @param string 	$accountKeysDir The directory in which the account keys are stored. Is a subdir inside $keysDir. Defaults to '__account/'.(optional)
      */
-	public function __construct($email, $staging = false, $log = LEClient::LOG_OFF, $keysDir = 'keys/', $accountKeysDir = '__account/')
+	public function __construct($email, $staging = false, $log = Client::LOG_OFF, $keysDir = 'keys/', $accountKeysDir = '__account/')
 	{
 		if(substr($keysDir, -1) !== '/') $keysDir .= '/';
 		if(substr($accountKeysDir, -1) !== '/') $accountKeysDir .= '/';
@@ -81,19 +83,19 @@ class LEClient
 		if(!file_exists($this->keysDir))
 		{
 			mkdir($this->keysDir, 0777, true);
-			LEFunctions::createhtaccess($this->keysDir);
+			Functions::createhtaccess($this->keysDir);
 		}
 		if(!file_exists($this->accountKeysDir)) mkdir($this->accountKeysDir, 0777, true);
-		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeysDir);
-		$this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeysDir);
-		if($this->log) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
+		$this->connector = new Connector($this->log, $this->baseURL, $this->accountKeysDir);
+		$this->account = new Account($this->connector, $this->log, $email, $this->accountKeysDir);
+		if($this->log) Functions::log('LEClient finished constructing', 'function LEClient __construct');
 	}
 
 
     /**
      * Returns the LetsEncrypt account used in the current client.
 	 *
-	 * @return LEAccount	The LetsEncrypt Account instance used by the client.
+	 * @return Account	The LetsEncrypt Account instance used by the client.
      */
 	public function getAccount()
 	{
@@ -109,10 +111,10 @@ class LEClient
      * @param string 	$notBefore	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid. Defaults to the moment the order is finalized. (optional)
      * @param string 	$notAfter  	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid. Defaults to 90 days past the moment the order is finalized. (optional)
      *
-     * @return LEOrder	The LetsEncrypt Order instance which is either retrieved or created.
+     * @return Order	The LetsEncrypt Order instance which is either retrieved or created.
      */
 	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa', $notBefore = '', $notAfter = '')
 	{
-		return new LEOrder($this->connector, $this->log, $this->keysDir, $basename, $domains, $keyType, $notBefore, $notAfter);
+		return new Order($this->connector, $this->log, $this->keysDir, $basename, $domains, $keyType, $notBefore, $notAfter);
 	}
 }
