@@ -239,7 +239,7 @@ class LEConnector
 	/**
      * Generates a Key ID signature to attach to the request.
      * 
-     * @param array 	$payload		The payload to add to the signature.
+     * @param array|string 	$payload		The payload to add to the signature.
 	 * @param string	$kid			The Key ID to use in the signature.
      * @param string	$url 			The URL to use in the signature.
      * @param string 	$privateKeyFile The private key to sign the request with. Defaults to 'private.pem'. (optional)
@@ -251,7 +251,7 @@ class LEConnector
     {
 		if($privateKeyDir == '') $privateKeyDir = $this->accountKeysDir;
         $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyDir . $privateKeyFile));
-        $details = openssl_pkey_get_details($privateKey);
+        // TODO: unused - $details = openssl_pkey_get_details($privateKey);
 
         $protected = array(
             "alg" => "RS256",
@@ -275,5 +275,3 @@ class LEConnector
         return json_encode($data);
     }
 }
-
-?>
