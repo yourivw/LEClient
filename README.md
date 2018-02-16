@@ -23,7 +23,7 @@ This client also depends on cURL and OpenSSL.
 
 Download and install the LEClient folder and examples wherever you want to install it. You can include the library by adding the following:
 ```php
-require_once('LEClient/LEClient.php');
+require( dirname(__FILE__) . DIRECTORY_SEPARATOR . 'autoload.php');
 ```
 
 It is advisable to cut the script some slack regarding execution time by setting a higher maximum time. There are several ways to do so. One it to add the following to the top of the page:
@@ -39,9 +39,9 @@ The basic functions and its necessary arguments are shown here. An extended desc
 
 Initiating the client:
 ```php
-$client = new LEClient($email);                               // Initiating a basic LEClient with an array of string e-mail address(es).
-$client = new LEClient($email, true);                         // Initiating a LECLient and use the LetsEncrypt staging URL.
-$client = new LEClient($email, true, LEClient::LOG_STATUS);   // Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
+$client = new \LEClient\Client($email);                                     // Initiating a basic Client with an array of string e-mail address(es).
+$client = new \LEClient\Client($email, true);                               // Initiating a Client and use the LetsEncrypt staging URL.
+$client = new \LEClient\Client($email, true, \LEClient\Log::LEVEL_STATUS);  // Initiating a Client and log status messages (LOG_DEBUG for full debugging).
 ```
 The client will automatically create a new account if there isn't one found. It will forward the e-mail address(es) supplied during initiation, as shown above.
 
@@ -68,8 +68,8 @@ $order = $client->getOrCreateOrder($basename, $domains, $keyType, $notBefore, $n
 Using the order functions:
 ```php
 $valid      = $order->allAuthorizationsValid();                             // Check whether all authorizations in this order instance are valid.
-$pending    = $order->getPendingAuthorizations($type);                      // Get an array of pending authorizations. Performing authorizations is described further on. Type is LEOrder::CHALLENGE_TYPE_HTTP or LEOrder::CHALLENGE_TYPE_DNS.
-$verify     = $order->verifyPendingOrderAuthorization($identifier, $type);  // Verify a pending order. The identifier is a string domain name. Type is LEOrder::CHALLENGE_TYPE_HTTP or LEOrder::CHALLENGE_TYPE_DNS.
+$pending    = $order->getPendingAuthorizations($type);                      // Get an array of pending authorizations. Performing authorizations is described further on. Type is \LEClient\Order::CHALLENGE_TYPE_HTTP or \LEClient\Order::CHALLENGE_TYPE_DNS.
+$verify     = $order->verifyPendingOrderAuthorization($identifier, $type);  // Verify a pending order. The identifier is a string domain name. Type is \LEClient\Order::CHALLENGE_TYPE_HTTP or \LEClient\Order::CHALLENGE_TYPE_DNS.
 $deactivate = $order->deactivateOrderAuthorization($identifier);            // Deactivate an authorization. The identifier is a string domain name.
 $finalize   = $order->finalizeOrder();                                      // Finalize the order and generate a Certificate Signing Request automatically.
 $finalize   = $order->finalizeOrder($csr);                                  // Finalize the order with a custom Certificate Signing Request string.
@@ -78,18 +78,27 @@ $cert       = $order->getCertificate();                                     // R
 $revoke     = $order->revokeCertificate();                                  // Revoke the certificate without a reason.
 $revoke     = $order->revokeCertificate($reason);                           // Revoke the certificate with a reason integer as found in section 5.3.1 of RFC5280.
 ```
+
+<br />
+
+Using the log functions:
+$log = new \LEClient\Log($desiredLogLevel);                         // Initiating a log instance and set the desired log level
+$log->add($logLevel, $data, $function);                             // Log the data. The function variable is optional and defaults to the calling function's name.
+```php
+
+```
+
 <br />
 
 Supportive functions:
 ```php
-LEFunctions::RSAGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  // Generate a RSA keypair in the given directory. Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
-LEFunctions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  	// Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
-LEFunctions::Base64UrlSafeEncode($input);                                   // Encode the input string as a base64 URL safe string.
-LEFunctions::Base64UrlSafeDecode($input);                                   // Decode a base64 URL safe encoded string.
-LEFunctions::log($data, $function);                                         // Print the data. The function variable is optional and defaults to the calling function's name.
-LEFunctions::checkHTTPChallenge($domain, $token, $keyAuthorization);        // Checks whether the HTTP challenge is valid. Performing authorizations is described further on.
-LEFunctions::checkDNSChallenge($domain, $DNSDigest);                        // Checks whether the DNS challenge is valid. Performing authorizations is described further on.
-LEFunctions::createhtaccess($directory);									// Created a simple .htaccess file in the directory supplied, denying all visitors.
+\LEClient\Functions::RSAGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  // Generate a RSA keypair in the given directory. Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
+\LEClient\Functions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  	// Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
+\LEClient\Functions::Base64UrlSafeEncode($input);                                   // Encode the input string as a base64 URL safe string.
+\LEClient\Functions::Base64UrlSafeDecode($input);                                   // Decode a base64 URL safe encoded string.
+\LEClient\Functions::checkHTTPChallenge($domain, $token, $keyAuthorization);        // Checks whether the HTTP challenge is valid. Performing authorizations is described further on.
+\LEClient\Functions::checkDNSChallenge($domain, $DNSDigest);                        // Checks whether the DNS challenge is valid. Performing authorizations is described further on.
+\LEClient\Functions::createhtaccess($directory);									// Created a simple .htaccess file in the directory supplied, denying all visitors.
 ```
 
 ## Authorization challenges
@@ -100,7 +109,7 @@ LetsEncrypt (ACME) performs authorizations on the domains you want to include on
 
 For this example, we assume there is one domain left to verify.
 ```php
-$pending = $order->getPendingAuthorizations(LEOrder::CHALLENGE_TYPE_HTTP);
+$pending = $order->getPendingAuthorizations(\LEClient\Order::CHALLENGE_TYPE_HTTP);
 ```
 This returns an array:
 ```
@@ -125,7 +134,7 @@ The content of this file should be set to the content in the array above. The us
 
 For this example, we assume there are two domains left to verify. One is a wildcard domain. The second domain in this example is added for demonstration purposes. Adding a subdomain to the certificate which is also already covered by the wildcard domain is does not offer much added value.
 ```php
-$pending = $order->getPendingAuthorizations(LEOrder::CHALLENGE_TYPE_DNS);
+$pending = $order->getPendingAuthorizations(\LEClient\Order::CHALLENGE_TYPE_DNS);
 ```
 This returns an array:
 ```
