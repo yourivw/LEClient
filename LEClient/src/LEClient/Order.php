@@ -61,8 +61,8 @@ class Order
     /**
      * Initiates the LetsEncrypt Order class. If the base name is found in the $keysDir directory, the order data is requested. If no order was found locally, if the request is invalid or when there is a change in domain names, a new order is created.
      *
-     * @param Connector	$connector	The LetsEncrypt Connector instance to use for HTTP requests.
-     * @param int 			$log 		The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
+     * @param Connector	$connector	    The LetsEncrypt Connector instance to use for HTTP requests.
+     * @param Log 			$log 		Common Log instance
      * @param string 		$keysDir 	The main directory in which all keys (and certificates), including account keys, are stored.
      * @param string 		$basename 	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 		$domains 	The array of strings containing the domain names on the certificate.
@@ -93,7 +93,7 @@ class Order
 					{
 						$newDir = $keysDir . $this->basename . '-backup-' . date('dmYHis') . '/';
 						rename($this->orderDir, $newDir);
-						if($this->log >= Client::LOG_STATUS) Functions::log('Domains do not match order data. Changing directory to ' . $newDir . ' and creating new order.', 'function LEOrder __construct');
+						$this->log->add(Log::LEVEL_STATUS, 'Domains do not match order data. Changing directory to ' . $newDir . ' and creating new order.', 'function LEOrder __construct');
 						$this->createOrder($domains, $notBefore, $notAfter);
 					}
 					else
@@ -109,21 +109,21 @@ class Order
 				}
 				else
 				{
-					if($this->log >= Client::LOG_STATUS) Functions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
+					$this->log->add(Log::LEVEL_STATUS, 'Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
 					unlink($this->orderDir);
 					$this->createOrder($domains, $notBefore, $notAfter);
 				}
 			}
 			else
 			{
-				if($this->log >= Client::LOG_STATUS) Functions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
+				$this->log->add(Log::LEVEL_STATUS, 'Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
 				unlink($this->orderDir);
 				$this->createOrder($domains, $notBefore, $notAfter);
 			}
 		}
 		else
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('No order found for \'' . $this->basename . '\'. Creating new order.', 'function LEOrder __construct');
+			$this->log->add(Log::LEVEL_STATUS, 'No order found for \'' . $this->basename . '\'. Creating new order.', 'function LEOrder __construct');
 			$this->createOrder($domains, $notBefore, $notAfter);
 		}
 	}
@@ -177,7 +177,7 @@ class Order
 					if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
 					$this->updateAuthorizations();
 
-					if($this->log >= Client::LOG_STATUS) Functions::log('Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
+					$this->log->add(Log::LEVEL_STATUS, 'Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
 				}
 				else
 				{
@@ -213,7 +213,7 @@ class Order
 		}
 		else
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('Cannot update data for order \'' . $this->basename . '\'.', 'function updateOrderData');
+			$this->log->add(Log::LEVEL_STATUS, 'Cannot update data for order \'' . $this->basename . '\'.', 'function updateOrderData');
 		}
 	}
 
@@ -345,7 +345,7 @@ class Order
 									$post = $this->connector->post($challenge['url'], $sign);
 									if(strpos($post['header'], "200 OK") !== false)
 									{
-										if($this->log >= Client::LOG_STATUS) Functions::log('HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+										$this->log->add(Log::LEVEL_STATUS, 'HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										while($auth->status == 'pending')
 										{
 											sleep(1);
@@ -356,7 +356,7 @@ class Order
 								}
 								else
 								{
-									if($this->log >= Client::LOG_STATUS) Functions::log('HTTP challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
+									$this->log->add(Log::LEVEL_STATUS, 'HTTP challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 							case Order::CHALLENGE_TYPE_DNS:
@@ -367,7 +367,7 @@ class Order
 									$post = $this->connector->post($challenge['url'], $sign);
 									if(strpos($post['header'], "200 OK") !== false)
 									{
-										if($this->log >= Client::LOG_STATUS) Functions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+										$this->log->add(Log::LEVEL_STATUS, 'DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										while($auth->status == 'pending')
 										{
 											sleep(1);
@@ -378,7 +378,7 @@ class Order
 								}
 								else
 								{
-									if($this->log >= Client::LOG_STATUS) Functions::log('DNS challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
+									$this->log->add(Log::LEVEL_STATUS, 'DNS challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 						}
@@ -406,13 +406,13 @@ class Order
 				$post = $this->connector->post($auth->authorizationURL, $sign);
 				if(strpos($post['header'], "200 OK") !== false)
 				{
-					if($this->log >= Client::LOG_STATUS) Functions::log('Authorization for \'' . $identifier . '\' deactivated.', 'function deactivateOrderAuthorization');
+					$this->log->add(Log::LEVEL_STATUS, 'Authorization for \'' . $identifier . '\' deactivated.', 'function deactivateOrderAuthorization');
 					$this->updateAuthorizations();
 					return true;
 				}
 			}
 		}
-		if($this->log >= Client::LOG_STATUS) Functions::log('No authorization found for \'' . $identifier . '\', cannot deactivate.', 'function deactivateOrderAuthorization');
+		$this->log->add(Log::LEVEL_STATUS, 'No authorization found for \'' . $identifier . '\', cannot deactivate.', 'function deactivateOrderAuthorization');
 		return false;
 	}
 
@@ -497,18 +497,18 @@ class Order
 					$this->finalizeURL = $post['body']['finalize'];
 					if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
 					$this->updateAuthorizations();
-					if($this->log >= Client::LOG_STATUS) Functions::log('Order for \'' . $this->basename . '\' finalized.', 'function finalizeOrder');
+					$this->log->add(Log::LEVEL_STATUS, 'Order for \'' . $this->basename . '\' finalized.', 'function finalizeOrder');
 					return true;
 				}
 			}
 			else
 			{
-				if($this->log >= Client::LOG_STATUS) Functions::log('Not all authorizations are valid for \'' . $this->basename . '\'. Cannot finalize order.', 'function finalizeOrder');
+				$this->log->add(Log::LEVEL_STATUS, 'Not all authorizations are valid for \'' . $this->basename . '\'. Cannot finalize order.', 'function finalizeOrder');
 			}
 		}
 		else
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('Order status for \'' . $this->basename . '\' is \'' . $this->status . '\'. Cannot finalize order.', 'function finalizeOrder');
+			$this->log->add(Log::LEVEL_STATUS, 'Order status for \'' . $this->basename . '\' is \'' . $this->status . '\'. Cannot finalize order.', 'function finalizeOrder');
 		}
 		return false;
 	}
@@ -534,7 +534,7 @@ class Order
 		$polling = 0;
 		while($this->status == 'processing' && $polling < 4)
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for \'' . $this->basename . '\' being processed. Retrying in 5 seconds...', 'function getCertificate');
+			$this->log->add(Log::LEVEL_STATUS, 'Certificate for \'' . $this->basename . '\' being processed. Retrying in 5 seconds...', 'function getCertificate');
 			sleep(5);
 			$this->updateOrderData();
 			$polling++;
@@ -554,22 +554,22 @@ class Order
 							file_put_contents($this->orderDir . '/chain' . $i . '.crt',  $matches[0][$i]);
 						}
 					}
-					if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for \'' . $this->basename . '\' stored in \'' . $this->orderDir . '\'.', 'function getCertificate');
+					$this->log->add(Log::LEVEL_STATUS, 'Certificate for \'' . $this->basename . '\' stored in \'' . $this->orderDir . '\'.', 'function getCertificate');
 					return true;
 				}
 				else
 				{
-					if($this->log >= Client::LOG_STATUS) Functions::log('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+					$this->log->add(Log::LEVEL_STATUS, 'Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 				}
 			}
 			else
 			{
-				if($this->log >= Client::LOG_STATUS) Functions::log('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+				$this->log->add(Log::LEVEL_STATUS, 'Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 			}
 		}
 		else
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('Order for \'' . $this->basename . '\' not valid. Cannot retrieve certificate.', 'function getCertificate');
+			$this->log->add(Log::LEVEL_STATUS, 'Order for \'' . $this->basename . '\' not valid. Cannot retrieve certificate.', 'function getCertificate');
 		}
 		return false;
 	}
@@ -596,22 +596,22 @@ class Order
 				$post = $this->connector->post($this->connector->revokeCert, $sign);
 				if(strpos($post['header'], "200 OK") !== false)
 				{
-					if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for order \'' . $this->basename . '\' revoked.', 'function revokeCertificate');
+					$this->log->add(Log::LEVEL_STATUS, 'Certificate for order \'' . $this->basename . '\' revoked.', 'function revokeCertificate');
 					return true;
 				}
 				else
 				{
-					if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for order \'' . $this->basename . '\' cannot be revoked.', 'function revokeCertificate');
+					$this->log->add(Log::LEVEL_STATUS, 'Certificate for order \'' . $this->basename . '\' cannot be revoked.', 'function revokeCertificate');
 				}
 			}
 			else
 			{
-				if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for order \'' . $this->basename . '\' not found. Cannot revoke certificate.', 'function revokeCertificate');
+				$this->log->add(Log::LEVEL_STATUS, 'Certificate for order \'' . $this->basename . '\' not found. Cannot revoke certificate.', 'function revokeCertificate');
 			}
 		}
 		else
 		{
-			if($this->log >= Client::LOG_STATUS) Functions::log('Order for \'' . $this->basename . '\' not valid. Cannot revoke certificate.', 'function revokeCertificate');
+			$this->log->add(Log::LEVEL_STATUS, 'Order for \'' . $this->basename . '\' not valid. Cannot revoke certificate.', 'function revokeCertificate');
 		}
 		return false;
 	}
