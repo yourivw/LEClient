@@ -43,7 +43,7 @@ class LEFunctions
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
      */
-	public function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
+	public static function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
 	{
 		$res = openssl_pkey_new(array(
 			"private_key_type" => OPENSSL_KEYTYPE_RSA,
@@ -69,7 +69,7 @@ class LEFunctions
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
      */
-	public function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
+	public static function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
 	{
 	   if (version_compare(PHP_VERSION, '7.1.0') == -1) throw new \RuntimeException("PHP 7.1+ required for EC keys");
 
@@ -124,10 +124,10 @@ class LEFunctions
     /**
      * Outputs a log message.
      *
-     * @param object	$data		The data to print.
+     * @param object|array|string	$data		The data to print.
      * @param string	$function	The function name to print above. Defaults to the calling function's name from the stacktrace. (optional)
      */
-	public function log($data, $function = '')
+	public static function log($data, $function = '')
 	{
 		$e = new Exception();
 		$trace = $e->getTrace();
@@ -148,7 +148,7 @@ class LEFunctions
      *
      * @return boolean	Returns true if the challenge is valid, false if not.
      */
-	public function checkHTTPChallenge($domain, $token, $keyAuthorization)
+	public static function checkHTTPChallenge($domain, $token, $keyAuthorization)
 	{
 		$requestURL = $domain . '/.well-known/acme-challenge/' . $token;
 		$handle = curl_init();
@@ -166,7 +166,7 @@ class LEFunctions
      *
      * @return boolean	Returns true if the challenge is valid, false if not.
      */
-	public function checkDNSChallenge($domain, $DNSDigest)
+	public static function checkDNSChallenge($domain, $DNSDigest)
 	{
 		$DNS = '_acme-challenge.' . str_replace('*.', '', $domain);
 		$records = dns_get_record($DNS, DNS_TXT);
@@ -184,10 +184,8 @@ class LEFunctions
      *
      * @param string	$directory	The directory in which to put the .htaccess file.
      */
-	public function createhtaccess($directory)
+	public static function createhtaccess($directory)
 	{
 		file_put_contents($directory . '.htaccess', "order deny,allow\ndeny from all");
 	}
 }
-
-?>
