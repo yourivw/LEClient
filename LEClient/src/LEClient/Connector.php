@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Connector class, containing the functions necessary to sign with JSON Web Key and Key ID, and perform GET, POST and HEAD requests.
  *
@@ -34,7 +36,7 @@
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class LEConnector
+class Connector
 {
 	public $baseURL;
 	public $accountKeysDir;
@@ -54,8 +56,8 @@ class LEConnector
 	
     /**
      * Initiates the LetsEncrypt Connector class.
-     * 
-     * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
+     *
+     * @param Log 		$log 		    Common Log instance
      * @param string	$baseURL 		The LetsEncrypt server URL to make requests to.
      * @param string	$accountKeysDir The directory in which the account keys are stored.
      */
@@ -137,7 +139,7 @@ class LEConnector
         $body = substr($response, $header_size);
 		$jsonbody = json_decode($body, true);
 		$jsonresponse = array('request' => $method . ' ' . $requestURL, 'header' => $header, 'body' => $jsonbody === null ? $body : $jsonbody);
-		if($this->log >= LECLient::LOG_DEBUG) LEFunctions::log($jsonresponse);
+		$this->log->add(Log::LEVEL_DEBUG, $jsonresponse);
 		
 		if(	(($method == 'POST' OR $method == 'GET') AND strpos($header, "200 OK") === false AND strpos($header, "201 Created") === false) OR 
 			($method == 'HEAD' AND strpos($header, "204 No Content") === false))
@@ -214,18 +216,18 @@ class LEConnector
             "alg" => "RS256",
             "jwk" => array(
                 "kty" => "RSA",
-                "n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"]),
-                "e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
+                "n" => Functions::Base64UrlSafeEncode($details["rsa"]["n"]),
+                "e" => Functions::Base64UrlSafeEncode($details["rsa"]["e"]),
             ),
 			"nonce" => $this->nonce,
 			"url" => $url
         );
 
-        $payload64 = LEFunctions::Base64UrlSafeEncode(str_replace('\\/', '/', is_array($payload) ? json_encode($payload) : $payload));
-        $protected64 = LEFunctions::Base64UrlSafeEncode(json_encode($protected));
+        $payload64 = Functions::Base64UrlSafeEncode(str_replace('\\/', '/', is_array($payload) ? json_encode($payload) : $payload));
+        $protected64 = Functions::Base64UrlSafeEncode(json_encode($protected));
 
         openssl_sign($protected64.'.'.$payload64, $signed, $privateKey, "SHA256");
-        $signed64 = LEFunctions::Base64UrlSafeEncode($signed);
+        $signed64 = Functions::Base64UrlSafeEncode($signed);
 
         $data = array(
             'protected' => $protected64,
@@ -239,7 +241,7 @@ class LEConnector
 	/**
      * Generates a Key ID signature to attach to the request.
      * 
-     * @param array 	$payload		The payload to add to the signature.
+     * @param array|string 	$payload		The payload to add to the signature.
 	 * @param string	$kid			The Key ID to use in the signature.
      * @param string	$url 			The URL to use in the signature.
      * @param string 	$privateKeyFile The private key to sign the request with. Defaults to 'private.pem'. (optional)
@@ -251,7 +253,7 @@ class LEConnector
     {
 		if($privateKeyDir == '') $privateKeyDir = $this->accountKeysDir;
         $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyDir . $privateKeyFile));
-        $details = openssl_pkey_get_details($privateKey);
+        // TODO: unused - $details = openssl_pkey_get_details($privateKey);
 
         $protected = array(
             "alg" => "RS256",
@@ -260,11 +262,11 @@ class LEConnector
 			"url" => $url
         );
 
-        $payload64 = LEFunctions::Base64UrlSafeEncode(str_replace('\\/', '/', is_array($payload) ? json_encode($payload) : $payload));
-        $protected64 = LEFunctions::Base64UrlSafeEncode(json_encode($protected));
+        $payload64 = Functions::Base64UrlSafeEncode(str_replace('\\/', '/', is_array($payload) ? json_encode($payload) : $payload));
+        $protected64 = Functions::Base64UrlSafeEncode(json_encode($protected));
 
         openssl_sign($protected64.'.'.$payload64, $signed, $privateKey, "SHA256");
-        $signed64 = LEFunctions::Base64UrlSafeEncode($signed);
+        $signed64 = Functions::Base64UrlSafeEncode($signed);
 
         $data = array(
             'protected' => $protected64,
@@ -275,5 +277,3 @@ class LEConnector
         return json_encode($data);
     }
 }
-
-?>

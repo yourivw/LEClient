@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Authorization class, getting LetsEncrypt authorization data associated with a LetsEncrypt Order instance.
  *
@@ -34,7 +36,7 @@
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class LEAuthorization
+class Authorization
 {
 	private $connector;
 	
@@ -49,8 +51,8 @@ class LEAuthorization
     /**
      * Initiates the LetsEncrypt Authorization class. Child of a LetsEncrypt Order instance.
      * 
-     * @param LEConnector	$connector			The LetsEncrypt Connector instance to use for HTTP requests.
-     * @param int 			$log 				The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
+     * @param Connector	    $connector		    The LetsEncrypt Connector instance to use for HTTP requests.
+     * @param Log 			$log 			    Common Log instance
      * @param string 		$authorizationURL 	The URL of the authorization, given by a LetsEncrypt order request.
      */
 	public function __construct($connector, $log, $authorizationURL)
@@ -69,7 +71,7 @@ class LEAuthorization
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
+			$this->log->add(Log::LEVEL_STATUS, 'Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
 		}
 	}
 	
@@ -89,7 +91,7 @@ class LEAuthorization
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function updateData');
+			$this->log->add(Log::LEVEL_STATUS, 'Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
 		}
 	}
 	
@@ -110,5 +112,3 @@ class LEAuthorization
 		throw new \RuntimeException('No challenge found for type \'' . $type . '\' and identifier \'' . $this->identifier['value'] . '\'.');
 	}
 }
-
-?>

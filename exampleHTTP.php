@@ -1,8 +1,9 @@
 <?php
 //Sets the maximum execution time to two minutes, to be sure.
 ini_set('max_execution_time', 120);
-// Including the LetsEncrypt Client.
-require_once('LEClient/LEClient.php');
+
+// Including the LetsEncrypt Client autoloader.
+require( dirname(__FILE__) . DIRECTORY_SEPARATOR . 'autoload.php');
 
 // Listing the contact information in case a new account has to be created.
 $email = array('info@example.org');
@@ -12,14 +13,14 @@ $basename = 'example.org';
 $domains = array('example.org', 'test.example.org');
 
 // Initiating the client instance. In this case using the staging server (argument 2) and outputting all status and debug information (argument 3).
-$client = new LEClient($email, true, LECLient::LOG_STATUS);
+$client = new \LEClient\Client($email, true, \LEClient\Log::LEVEL_STATUS);
 // Initiating the order instance. The keys and certificate will be stored in /example.org/ (argument 1) and the domains in the array (argument 2) will be on the certificate.
 $order = $client->getOrCreateOrder($basename, $domains);
 // Check whether there are any authorizations pending. If that is the case, try to verify the pending authorizations.
 if(!$order->allAuthorizationsValid())
 {
 	// Get the HTTP challenges from the pending authorizations.
-	$pending = $order->getPendingAuthorizations(LEOrder::CHALLENGE_TYPE_HTTP);
+	$pending = $order->getPendingAuthorizations(\LEClient\Order::CHALLENGE_TYPE_HTTP);
 	// Walk the list of pending authorization HTTP challenges.
 	if(!empty($pending))
 	{
@@ -32,7 +33,7 @@ if(!$order->allAuthorizationsValid())
 			// Store the challenge file for this domain.
 			file_put_contents($folder . $challenge['filename'], $challenge['content']);
 			// Let LetsEncrypt verify this challenge.
-			$order->verifyPendingOrderAuthorization($challenge['identifier'], LEOrder::CHALLENGE_TYPE_HTTP);
+			$order->verifyPendingOrderAuthorization($challenge['identifier'], \LEClient\Order::CHALLENGE_TYPE_HTTP);
 		}
 	}
 }
@@ -44,4 +45,3 @@ if($order->allAuthorizationsValid())
 	// Check whether the order has been finalized before we can get the certificate. If finalized, get the certificate.
 	if($order->isFinalized()) $order->getCertificate();
 }
-?>
