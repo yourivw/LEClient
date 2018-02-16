@@ -3,16 +3,6 @@
 namespace LEClient;
 
 /**
- * Load the dependencies for the LetsEncrypt Client
- */
-require_once('Connector.php');
-require_once('Account.php');
-require_once('Order.php');
-require_once('Authorization.php');
-require_once('Functions.php');
-require_once('Log.php');
-
-/**
  * Main LetsEncrypt Client class, works as a framework for the LEConnector, LEAccount, LEOrder and LEAuthorization classes.
  *
  * PHP version 7.1.0
