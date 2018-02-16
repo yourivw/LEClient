@@ -31,3 +31,8 @@ if(!$order->allAuthorizationsValid())
 		}
 	}
 }
+
+function setDNSRecord($identifier, $DNSDigest)
+{
+    // TODO: Implementation
+}
