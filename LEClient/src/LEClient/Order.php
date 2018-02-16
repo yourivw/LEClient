@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Order class, containing the functions and data associated with a specific LetsEncrypt order.
  *
@@ -34,7 +36,7 @@
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
-class LEOrder
+class Order
 {
 	private $connector;
 
@@ -59,7 +61,7 @@ class LEOrder
     /**
      * Initiates the LetsEncrypt Order class. If the base name is found in the $keysDir directory, the order data is requested. If no order was found locally, if the request is invalid or when there is a change in domain names, a new order is created.
      *
-     * @param LEConnector	$connector	The LetsEncrypt Connector instance to use for HTTP requests.
+     * @param Connector	$connector	The LetsEncrypt Connector instance to use for HTTP requests.
      * @param int 			$log 		The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
      * @param string 		$keysDir 	The main directory in which all keys (and certificates), including account keys, are stored.
      * @param string 		$basename 	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
@@ -91,7 +93,7 @@ class LEOrder
 					{
 						$newDir = $keysDir . $this->basename . '-backup-' . date('dmYHis') . '/';
 						rename($this->orderDir, $newDir);
-						if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Domains do not match order data. Changing directory to ' . $newDir . ' and creating new order.', 'function LEOrder __construct');
+						if($this->log >= Client::LOG_STATUS) Functions::log('Domains do not match order data. Changing directory to ' . $newDir . ' and creating new order.', 'function LEOrder __construct');
 						$this->createOrder($domains, $notBefore, $notAfter);
 					}
 					else
@@ -107,21 +109,21 @@ class LEOrder
 				}
 				else
 				{
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
 					unlink($this->orderDir);
 					$this->createOrder($domains, $notBefore, $notAfter);
 				}
 			}
 			else
 			{
-				if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
+				if($this->log >= Client::LOG_STATUS) Functions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
 				unlink($this->orderDir);
 				$this->createOrder($domains, $notBefore, $notAfter);
 			}
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('No order found for \'' . $this->basename . '\'. Creating new order.', 'function LEOrder __construct');
+			if($this->log >= Client::LOG_STATUS) Functions::log('No order found for \'' . $this->basename . '\'. Creating new order.', 'function LEOrder __construct');
 			$this->createOrder($domains, $notBefore, $notAfter);
 		}
 	}
@@ -156,11 +158,11 @@ class LEOrder
 					file_put_contents($this->orderDir . 'order', trim($matches[1]));
 					if ($this->keyType == "rsa") 
 					{
-						LEFunctions::RSAgenerateKeys($this->orderDir); 
+						Functions::RSAgenerateKeys($this->orderDir);
 					}
 					elseif ($this->keyType == "ec") 
 					{ 
-						LEFunctions::ECgenerateKeys($this->orderDir); 
+						Functions::ECgenerateKeys($this->orderDir);
 					}
 					else
 					{
@@ -175,7 +177,7 @@ class LEOrder
 					if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
 					$this->updateAuthorizations();
 
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
 				}
 				else
 				{
@@ -211,7 +213,7 @@ class LEOrder
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot update data for order \'' . $this->basename . '\'.', 'function updateOrderData');
+			if($this->log >= Client::LOG_STATUS) Functions::log('Cannot update data for order \'' . $this->basename . '\'.', 'function updateOrderData');
 		}
 	}
 
@@ -225,7 +227,7 @@ class LEOrder
 		{
 			if (filter_var($authURL, FILTER_VALIDATE_URL))
 			{
-				$auth = new LEAuthorization($this->connector, $this->log, $authURL);
+				$auth = new Authorization($this->connector, $this->log, $authURL);
 				if($auth != false) $this->authorizations[] = $auth;
 			}
 		}
@@ -268,14 +270,14 @@ class LEOrder
 		$details = openssl_pkey_get_details($privateKey);
 
 		$header = array(
-			"e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
+			"e" => Functions::Base64UrlSafeEncode($details["rsa"]["e"]),
 			"kty" => "RSA",
-			"n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"])
+			"n" => Functions::Base64UrlSafeEncode($details["rsa"]["n"])
 
 		);
-		$digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
+		$digest = Functions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
 
-		/** @var LEAuthorization $auth */
+		/** @var Authorization $auth */
         foreach($this->authorizations as $auth)
 		{
 			if($auth->status == 'pending')
@@ -286,12 +288,12 @@ class LEOrder
 					$keyAuthorization = $challenge['token'] . '.' . $digest;
 					switch(strtolower($type))
 					{
-						case LEOrder::CHALLENGE_TYPE_HTTP:
-							$authorizations[] = array('type' => LEOrder::CHALLENGE_TYPE_HTTP, 'identifier' => $auth->identifier['value'], 'filename' => $challenge['token'], 'content' => $keyAuthorization);
+						case Order::CHALLENGE_TYPE_HTTP:
+							$authorizations[] = array('type' => Order::CHALLENGE_TYPE_HTTP, 'identifier' => $auth->identifier['value'], 'filename' => $challenge['token'], 'content' => $keyAuthorization);
 							break;
-						case LEOrder::CHALLENGE_TYPE_DNS:
-							$DNSDigest = LEFunctions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
-							$authorizations[] = array('type' => LEOrder::CHALLENGE_TYPE_DNS, 'identifier' => $auth->identifier['value'], 'DNSDigest' => $DNSDigest);
+						case Order::CHALLENGE_TYPE_DNS:
+							$DNSDigest = Functions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
+							$authorizations[] = array('type' => Order::CHALLENGE_TYPE_DNS, 'identifier' => $auth->identifier['value'], 'DNSDigest' => $DNSDigest);
 							break;
 					}
 				}
@@ -316,14 +318,14 @@ class LEOrder
 		$details = openssl_pkey_get_details($privateKey);
 
 		$header = array(
-			"e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
+			"e" => Functions::Base64UrlSafeEncode($details["rsa"]["e"]),
 			"kty" => "RSA",
-			"n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"])
+			"n" => Functions::Base64UrlSafeEncode($details["rsa"]["n"])
 
 		);
-		$digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
+		$digest = Functions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
 
-		/** @var LEAuthorization $auth */
+		/** @var Authorization $auth */
         foreach($this->authorizations as $auth)
 		{
 			if($auth->identifier['value'] == $identifier)
@@ -336,14 +338,14 @@ class LEOrder
 						$keyAuthorization = $challenge['token'] . '.' . $digest;
 						switch($type)
 						{
-							case LEOrder::CHALLENGE_TYPE_HTTP:
-								if(LEFunctions::checkHTTPChallenge($identifier, $challenge['token'], $keyAuthorization))
+							case Order::CHALLENGE_TYPE_HTTP:
+								if(Functions::checkHTTPChallenge($identifier, $challenge['token'], $keyAuthorization))
 								{
 									$sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
 									$post = $this->connector->post($challenge['url'], $sign);
 									if(strpos($post['header'], "200 OK") !== false)
 									{
-										if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+										if($this->log >= Client::LOG_STATUS) Functions::log('HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										while($auth->status == 'pending')
 										{
 											sleep(1);
@@ -354,18 +356,18 @@ class LEOrder
 								}
 								else
 								{
-									if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
+									if($this->log >= Client::LOG_STATUS) Functions::log('HTTP challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
-							case LEOrder::CHALLENGE_TYPE_DNS:
-								$DNSDigest = LEFunctions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
-								if(LEFunctions::checkDNSChallenge($identifier, $DNSDigest))
+							case Order::CHALLENGE_TYPE_DNS:
+								$DNSDigest = Functions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
+								if(Functions::checkDNSChallenge($identifier, $DNSDigest))
 								{
 									$sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
 									$post = $this->connector->post($challenge['url'], $sign);
 									if(strpos($post['header'], "200 OK") !== false)
 									{
-										if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+										if($this->log >= Client::LOG_STATUS) Functions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										while($auth->status == 'pending')
 										{
 											sleep(1);
@@ -376,7 +378,7 @@ class LEOrder
 								}
 								else
 								{
-									if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
+									if($this->log >= Client::LOG_STATUS) Functions::log('DNS challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 						}
@@ -404,13 +406,13 @@ class LEOrder
 				$post = $this->connector->post($auth->authorizationURL, $sign);
 				if(strpos($post['header'], "200 OK") !== false)
 				{
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Authorization for \'' . $identifier . '\' deactivated.', 'function deactivateOrderAuthorization');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Authorization for \'' . $identifier . '\' deactivated.', 'function deactivateOrderAuthorization');
 					$this->updateAuthorizations();
 					return true;
 				}
 			}
 		}
-		if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('No authorization found for \'' . $identifier . '\', cannot deactivate.', 'function deactivateOrderAuthorization');
+		if($this->log >= Client::LOG_STATUS) Functions::log('No authorization found for \'' . $identifier . '\', cannot deactivate.', 'function deactivateOrderAuthorization');
 		return false;
 	}
 
@@ -483,7 +485,7 @@ class LEOrder
 			{
 				if(empty($csr)) $csr = $this->generateCSR();
 				if(preg_match('~-----BEGIN\sCERTIFICATE\sREQUEST-----(.*)-----END\sCERTIFICATE\sREQUEST-----~s', $csr, $matches)) $csr = $matches[1];
-				$csr = trim(LEFunctions::Base64UrlSafeEncode(base64_decode($csr)));
+				$csr = trim(Functions::Base64UrlSafeEncode(base64_decode($csr)));
 				$sign = $this->connector->signRequestKid(array('csr' => $csr), $this->connector->accountURL, $this->finalizeURL);
 				$post = $this->connector->post($this->finalizeURL, $sign);
 				if(strpos($post['header'], "200 OK") !== false)
@@ -495,18 +497,18 @@ class LEOrder
 					$this->finalizeURL = $post['body']['finalize'];
 					if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
 					$this->updateAuthorizations();
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' finalized.', 'function finalizeOrder');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Order for \'' . $this->basename . '\' finalized.', 'function finalizeOrder');
 					return true;
 				}
 			}
 			else
 			{
-				if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Not all authorizations are valid for \'' . $this->basename . '\'. Cannot finalize order.', 'function finalizeOrder');
+				if($this->log >= Client::LOG_STATUS) Functions::log('Not all authorizations are valid for \'' . $this->basename . '\'. Cannot finalize order.', 'function finalizeOrder');
 			}
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order status for \'' . $this->basename . '\' is \'' . $this->status . '\'. Cannot finalize order.', 'function finalizeOrder');
+			if($this->log >= Client::LOG_STATUS) Functions::log('Order status for \'' . $this->basename . '\' is \'' . $this->status . '\'. Cannot finalize order.', 'function finalizeOrder');
 		}
 		return false;
 	}
@@ -532,7 +534,7 @@ class LEOrder
 		$polling = 0;
 		while($this->status == 'processing' && $polling < 4)
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' being processed. Retrying in 5 seconds...', 'function getCertificate');
+			if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for \'' . $this->basename . '\' being processed. Retrying in 5 seconds...', 'function getCertificate');
 			sleep(5);
 			$this->updateOrderData();
 			$polling++;
@@ -552,22 +554,22 @@ class LEOrder
 							file_put_contents($this->orderDir . '/chain' . $i . '.crt',  $matches[0][$i]);
 						}
 					}
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' stored in \'' . $this->orderDir . '\'.', 'function getCertificate');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for \'' . $this->basename . '\' stored in \'' . $this->orderDir . '\'.', 'function getCertificate');
 					return true;
 				}
 				else
 				{
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 				}
 			}
 			else
 			{
-				if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+				if($this->log >= Client::LOG_STATUS) Functions::log('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 			}
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' not valid. Cannot retrieve certificate.', 'function getCertificate');
+			if($this->log >= Client::LOG_STATUS) Functions::log('Order for \'' . $this->basename . '\' not valid. Cannot retrieve certificate.', 'function getCertificate');
 		}
 		return false;
 	}
@@ -588,28 +590,28 @@ class LEOrder
 			{
 				$certificate = file_get_contents($this->orderDir . 'certificate.crt');
 				preg_match('~-----BEGIN\sCERTIFICATE-----(.*)-----END\sCERTIFICATE-----~s', $certificate, $matches);
-				$certificate = trim(LEFunctions::Base64UrlSafeEncode(base64_decode(trim($matches[1]))));
+				$certificate = trim(Functions::Base64UrlSafeEncode(base64_decode(trim($matches[1]))));
 
 				$sign = $this->connector->signRequestJWK(array('certificate' => $certificate, 'reason' => $reason), $this->connector->revokeCert, 'private.pem', $this->orderDir);
 				$post = $this->connector->post($this->connector->revokeCert, $sign);
 				if(strpos($post['header'], "200 OK") !== false)
 				{
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' revoked.', 'function revokeCertificate');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for order \'' . $this->basename . '\' revoked.', 'function revokeCertificate');
 					return true;
 				}
 				else
 				{
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' cannot be revoked.', 'function revokeCertificate');
+					if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for order \'' . $this->basename . '\' cannot be revoked.', 'function revokeCertificate');
 				}
 			}
 			else
 			{
-				if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' not found. Cannot revoke certificate.', 'function revokeCertificate');
+				if($this->log >= Client::LOG_STATUS) Functions::log('Certificate for order \'' . $this->basename . '\' not found. Cannot revoke certificate.', 'function revokeCertificate');
 			}
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' not valid. Cannot revoke certificate.', 'function revokeCertificate');
+			if($this->log >= Client::LOG_STATUS) Functions::log('Order for \'' . $this->basename . '\' not valid. Cannot revoke certificate.', 'function revokeCertificate');
 		}
 		return false;
 	}
