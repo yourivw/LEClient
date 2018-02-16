@@ -38,7 +38,6 @@ class LEOrder
 {
 	private $connector;
 
-	private $keysDir;
 	private $basename;
 	private $orderDir;
 	private $keyType;
@@ -93,7 +92,7 @@ class LEOrder
 						$newDir = $keysDir . $this->basename . '-backup-' . date('dmYHis') . '/';
 						rename($this->orderDir, $newDir);
 						if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Domains do not match order data. Changing directory to ' . $newDir . ' and creating new order.', 'function LEOrder __construct');
-						$this->createOrder($domains, $notBefore, $notAfter, $keyType);
+						$this->createOrder($domains, $notBefore, $notAfter);
 					}
 					else
 					{
@@ -199,7 +198,7 @@ class LEOrder
      */
 	private function updateOrderData()
 	{
-		$get = $this->connector->get($orderURL);
+		$get = $this->connector->get($orderURL); //TODO: BUG - $orderURL is not set - should be replaced by ..?
 		if(strpos($get['header'], "200 OK") !== false)
 		{
 			$this->status = $get['body']['status'];
@@ -256,7 +255,7 @@ class LEOrder
      * @param int	$type	The type of verification to get. Supporting http-01 and dns-01. Supporting LEOrder::CHALLENGE_TYPE_HTTP and LEOrder::CHALLENGE_TYPE_DNS. Throws
 	 *						a Runtime Exception when requesting an unknown $type. Keep in mind a wildcard domain authorization only accepts LEOrder::CHALLENGE_TYPE_DNS.
      *
-     * @return object	Returns an array with verification data if successful, false if not pending LetsEncrypt Authorization instances were found. The return array always
+     * @return array|bool	Returns an array with verification data if successful, false if not pending LetsEncrypt Authorization instances were found. The return array always
 	 *					contains 'type' and 'identifier'. For LEOrder::CHALLENGE_TYPE_HTTP, the array contains 'filename' and 'content' for necessary the authorization file.
 	 *					For LEOrder::CHALLENGE_TYPE_DNS, the array contains 'DNSDigest', which is the content for the necessary DNS TXT entry.
      */
@@ -276,7 +275,8 @@ class LEOrder
 		);
 		$digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
 
-		foreach($this->authorizations as $auth)
+		/** @var LEAuthorization $auth */
+        foreach($this->authorizations as $auth)
 		{
 			if($auth->status == 'pending')
 			{
@@ -323,7 +323,8 @@ class LEOrder
 		);
 		$digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
 
-		foreach($this->authorizations as $auth)
+		/** @var LEAuthorization $auth */
+        foreach($this->authorizations as $auth)
 		{
 			if($auth->identifier['value'] == $identifier)
 			{
@@ -614,4 +615,3 @@ class LEOrder
 	}
 }
 
-?>
