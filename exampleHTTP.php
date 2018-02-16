@@ -44,4 +44,3 @@ if($order->allAuthorizationsValid())
 	// Check whether the order has been finalized before we can get the certificate. If finalized, get the certificate.
 	if($order->isFinalized()) $order->getCertificate();
 }
-?>

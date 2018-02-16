@@ -116,4 +116,3 @@ class LEClient
 		return new LEOrder($this->connector, $this->log, $this->keysDir, $basename, $domains, $keyType, $notBefore, $notAfter);
 	}
 }
-?>
