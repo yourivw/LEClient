@@ -39,7 +39,7 @@ class LEFunctions
     /**
      * Generates a new RSA keypair and saves both keys to a new file.
      *
-     * @param string	$directory		The directory in which to store the new keys.
+     * @param string	$directory		The directory in which to store the new keys. If set to null or empty string - privateKeyFile and publicKeyFile will be treated as absolute paths.
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
      */
@@ -54,8 +54,14 @@ class LEFunctions
 
 		$details = openssl_pkey_get_details($res);
 
-		file_put_contents($directory . $privateKeyFile, $privateKey);
-		file_put_contents($directory . $publicKeyFile, $details['key']);
+		if ($directory !== null && $directory !== '')
+		{
+			$privateKeyFile = $directory.$privateKeyFile;
+			$publicKeyFile = $directory.$publicKeyFile;
+		}
+
+		file_put_contents($privateKeyFile, $privateKey);
+		file_put_contents($publicKeyFile, $details['key']);
 
 		openssl_pkey_free($res);
 	}
@@ -65,7 +71,7 @@ class LEFunctions
     /**
      * Generates a new EC prime256v1 keypair and saves both keys to a new file.
      *
-     * @param string	$directory		The directory in which to store the new keys.
+     * @param string	$directory		The directory in which to store the new keys. If set to null or empty string - privateKeyFile and publicKeyFile will be treated as absolute paths.
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
      */
@@ -82,8 +88,14 @@ class LEFunctions
 
 		$details = openssl_pkey_get_details($res);
 
-		file_put_contents($directory . $privateKeyFile, $privateKey);
-		file_put_contents($directory . $publicKeyFile, $details['key']);
+		if ($directory !== null && $directory !== '')
+		{
+			$privateKeyFile = $directory.$privateKeyFile;
+			$publicKeyFile = $directory.$publicKeyFile;
+		}
+
+		file_put_contents($privateKeyFile, $privateKey);
+		file_put_contents($publicKeyFile, $details['key']);
 
 		openssl_pkey_free($res);
 	}
