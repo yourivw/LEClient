@@ -179,7 +179,7 @@ class LEAccount
 		$privateKey = openssl_pkey_get_private(file_get_contents($this->accountKeysDir . 'newPrivate.pem'));
 		$details = openssl_pkey_get_details($privateKey);
 		
-		$innerPayload = array('account' => $this->accountURL, 'newKey' => array(
+		$innerPayload = array('account' => $this->connector->accountURL, 'newKey' => array(
 			"kty" => "RSA",
 			"n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"]),
 			"e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"])
