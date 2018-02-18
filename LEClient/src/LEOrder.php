@@ -471,7 +471,7 @@ class LEOrder
 			subjectAltName = ' . $san . '
 			keyUsage = nonRepudiation, digitalSignature, keyEncipherment');
 
-		$privateKey = openssl_pkey_get_private(file_get_contents($this->certificateKeys['public_key']));
+		$privateKey = openssl_pkey_get_private(file_get_contents($this->certificateKeys['private_key']));
 		$csr = openssl_csr_new($dn, $privateKey, array('config' => $tmpConfPath, 'digest_alg' => 'sha256'));
 		openssl_csr_export ($csr, $csr);
 		return $csr;
