@@ -38,9 +38,8 @@ class LEOrder
 {
 	private $connector;
 
-	private $keysDir;
 	private $basename;
-	private $orderDir;
+	private $certificateKeys;
 	private $orderURL;
 	private $keyType;
 
@@ -63,25 +62,25 @@ class LEOrder
      *
      * @param LEConnector	$connector	The LetsEncrypt Connector instance to use for HTTP requests.
      * @param int 			$log 		The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
-     * @param string 		$keysDir 	The main directory in which all keys (and certificates), including account keys, are stored.
+     * @param array 		$certificateKeys 	Array containing location of certificate keys files.
      * @param string 		$basename 	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 		$domains 	The array of strings containing the domain names on the certificate.
 	 * @param string 		$keyType 	Type of the key we want to use for certificate. Supported values are "rsa" (default) and "ec".
      * @param string 		$notBefore 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid.
      * @param string 		$notAfter 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid.
      */
-	public function __construct($connector, $log, $keysDir, $basename, $domains, $keyType, $notBefore, $notAfter)
+	public function __construct($connector, $log, $certificateKeys, $basename, $domains, $keyType, $notBefore, $notAfter)
 	{
 		$this->connector = $connector;
 		$this->basename = $basename;
 		$this->log = $log;
 		$this->keyType = $keyType;
 
-		$this->orderDir = $keysDir . $this->basename . '/';
+		$this->certificateKeys = $certificateKeys;
 
-		if(file_exists($this->orderDir) AND file_exists($this->orderDir . 'private.pem') AND file_exists($this->orderDir . 'public.pem') AND file_exists($this->orderDir . 'order'))
+		if(file_exists($this->certificateKeys['private_key']) AND file_exists($this->certificateKeys['order']) AND file_exists($this->certificateKeys['public_key']))
 		{
-			$this->orderURL = file_get_contents($this->orderDir . '/order');
+			$this->orderURL = file_get_contents($this->certificateKeys['order']);
 			if (filter_var($this->orderURL, FILTER_VALIDATE_URL))
 			{
 				$get = $this->connector->get($this->orderURL);
@@ -91,9 +90,11 @@ class LEOrder
 					$diff = array_merge(array_diff($orderdomains, $domains), array_diff($domains, $orderdomains));
 					if(!empty($diff))
 					{
-						$newDir = $keysDir . $this->basename . '-backup-' . date('dmYHis') . '/';
-						rename($this->orderDir, $newDir);
-						if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Domains do not match order data. Changing directory to ' . $newDir . ' and creating new order.', 'function LEOrder __construct');
+						foreach ($this->certificateKeys as $file)
+						{
+							if (is_file($file)) rename($file, $file.'.old');
+						}
+						if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Domains do not match order data. Renaming current files and creating new order.', 'function LEOrder __construct');
 						$this->createOrder($domains, $notBefore, $notAfter, $keyType);
 					}
 					else
@@ -109,15 +110,23 @@ class LEOrder
 				}
 				else
 				{
+					foreach ($this->certificateKeys as $file)
+					{
+						if (is_file($file)) unlink($file);
+					}
 					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
-					unlink($this->orderDir);
 					$this->createOrder($domains, $notBefore, $notAfter);
 				}
 			}
 			else
 			{
+
+				foreach ($this->certificateKeys as $file)
+				{
+					if (is_file($file)) unlink($file);
+				}
 				if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
-				unlink($this->orderDir);
+
 				$this->createOrder($domains, $notBefore, $notAfter);
 			}
 		}
@@ -139,7 +148,6 @@ class LEOrder
 	{
 		if(preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notBefore) AND preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notAfter))
 		{
-			mkdir($this->orderDir, 0777, true);
 
 			$dns = array();
 			foreach($domains as $domain)
@@ -156,14 +164,14 @@ class LEOrder
 				if(preg_match('~Location: (\S+)~i', $post['header'], $matches))
 				{
 					$this->orderURL = trim($matches[1]);
-					file_put_contents($this->orderDir . 'order', $this->orderURL);
-					if ($this->keyType == "rsa") 
+					file_put_contents($this->certificateKeys['order'], $this->orderURL);
+					if ($this->keyType == "rsa")
 					{
-						LEFunctions::RSAgenerateKeys($this->orderDir); 
+						LEFunctions::RSAgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key']);
 					}
-					elseif ($this->keyType == "ec") 
-					{ 
-						LEFunctions::ECgenerateKeys($this->orderDir); 
+					elseif ($this->keyType == "ec")
+					{
+						LEFunctions::ECgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key']);
 					}
 					else
 					{
@@ -267,7 +275,7 @@ class LEOrder
 	{
 		$authorizations = array();
 
-		$privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeysDir . 'private.pem'));
+		$privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeys['private_key']));
 		$details = openssl_pkey_get_details($privateKey);
 
 		$header = array(
@@ -314,7 +322,7 @@ class LEOrder
      */
 	public function verifyPendingOrderAuthorization($identifier, $type)
 	{
-		$privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeysDir . 'private.pem'));
+		$privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeys['private_key']));
 		$details = openssl_pkey_get_details($privateKey);
 
 		$header = array(
@@ -463,7 +471,7 @@ class LEOrder
 			subjectAltName = ' . $san . '
 			keyUsage = nonRepudiation, digitalSignature, keyEncipherment');
 
-		$privateKey = openssl_pkey_get_private(file_get_contents($this->orderDir . '/private.pem'));
+		$privateKey = openssl_pkey_get_private(file_get_contents($this->certificateKeys['private_key']));
 		$csr = openssl_csr_new($dn, $privateKey, array('config' => $tmpConfPath, 'digest_alg' => 'sha256'));
 		openssl_csr_export ($csr, $csr);
 		return $csr;
@@ -545,15 +553,19 @@ class LEOrder
 			{
 				if(preg_match_all('~(-----BEGIN\sCERTIFICATE-----[\s\S]+?-----END\sCERTIFICATE-----)~i', $get['body'], $matches))
 				{
-					file_put_contents($this->orderDir . '/certificate.crt',  $matches[0][0]);
-					if(count($matches[0]) > 1)
+					if (isset($this->certificateKeys['certificate'])) file_put_contents($this->certificateKeys['certificate'],  $matches[0][0]);
+
+					if(count($matches[0]) > 1 && isset($this->certificateKeys['fullchain_certificate']))
 					{
+						$fullchain = $matches[0][0]."\n";
 						for($i=1;$i<count($matches[0]);$i++)
 						{
-							file_put_contents($this->orderDir . '/chain' . $i . '.crt',  $matches[0][$i]);
+							$fullchain .= $matches[0][$i]."\n";
+
 						}
+						file_put_contents(trim($this->certificateKeys['fullchain_certificate']), $fullchain);
 					}
-					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' stored in \'' . $this->orderDir . '\'.', 'function getCertificate');
+					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' saved', 'function getCertificate');
 					return true;
 				}
 				else
@@ -585,13 +597,17 @@ class LEOrder
 	{
 		if($this->status == 'valid')
 		{
-			if(file_exists($this->orderDir . 'certificate.crt') && file_exists($this->orderDir . 'private.pem'))
+			if (isset($this->certificateKeys['certificate'])) $certFile = $this->certificateKeys['certificate'];
+			elseif (isset($this->certificateKeys['fullchain_certificate']))  $certFile = $this->certificateKeys['fullchain_certificate'];
+			else throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] required');
+
+			if(file_exists($certFile) && file_exists($this->certificateKeys['private_key']))
 			{
-				$certificate = file_get_contents($this->orderDir . 'certificate.crt');
+				$certificate = file_get_contents($this->certificateKeys['certificate']);
 				preg_match('~-----BEGIN\sCERTIFICATE-----(.*)-----END\sCERTIFICATE-----~s', $certificate, $matches);
 				$certificate = trim(LEFunctions::Base64UrlSafeEncode(base64_decode(trim($matches[1]))));
 
-				$sign = $this->connector->signRequestJWK(array('certificate' => $certificate, 'reason' => $reason), $this->connector->revokeCert, 'private.pem', $this->orderDir);
+				$sign = $this->connector->signRequestJWK(array('certificate' => $certificate, 'reason' => $reason), $this->connector->revokeCert);
 				$post = $this->connector->post($this->connector->revokeCert, $sign);
 				if(strpos($post['header'], "200 OK") !== false)
 				{

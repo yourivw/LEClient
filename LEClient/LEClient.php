@@ -48,8 +48,8 @@ class LEClient
 	private $baseURL = 			'https://acme-v02.api.letsencrypt.org';
 	private $stagingBaseURL = 	'https://acme-staging-v02.api.letsencrypt.org';
 
-	private $keysDir;
-	private $accountKeysDir;
+	private $certificatesKeys;
+	private $accountKeys;
 
 	private $connector;
 	private $account;
@@ -64,28 +64,99 @@ class LEClient
      * Initiates the LetsEncrypt main client.
      *
      * @param array		$email	 		The array of strings containing e-mail addresses. Only used in this function when creating a new account.
-	 * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
+     * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
      * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
-     * @param string 	$keysDir 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
-     * @param string 	$accountKeysDir The directory in which the account keys are stored. Is a subdir inside $keysDir. Defaults to '__account/'.(optional)
+     * @param string 	$certificateKeys 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
+		 * @param array 	$certificateKeys 		Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
+     * @param string 	$accountKeys The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
+		 * @param array 	$accountKeys Optional array containing location of account private and public keys. Required paths are private_key, public_key.
      */
-	public function __construct($email, $staging = false, $log = LEClient::LOG_OFF, $keysDir = 'keys/', $accountKeysDir = '__account/')
+	public function __construct($email, $staging = false, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
 	{
-		if(substr($keysDir, -1) !== '/') $keysDir .= '/';
-		if(substr($accountKeysDir, -1) !== '/') $accountKeysDir .= '/';
 
 		$this->log = $log;
 		if($staging) $this->baseURL = $this->stagingBaseURL;
-		$this->keysDir = $keysDir;
-		$this->accountKeysDir = $this->keysDir . $accountKeysDir;
-		if(!file_exists($this->keysDir))
+
+		if (is_array($certificateKeys) && is_string($accountKeys)) throw new \RuntimeException('when certificateKeys is array, accountKeys must be array also');
+		elseif (is_array($accountKeys) && is_string($certificateKeys)) throw new \RuntimeException('when accountKeys is array, certificateKeys must be array also');
+
+		if (is_string($certificateKeys))
 		{
-			mkdir($this->keysDir, 0777, true);
-			LEFunctions::createhtaccess($this->keysDir);
+
+			$certificateKeysDir = $certificateKeys;
+
+			if(!file_exists($certificateKeys))
+			{
+				mkdir($certificateKeys, 0777, true);
+				LEFunctions::createhtaccess($certificateKeys);
+			}
+
+			$this->certificateKeys = array(
+				"public_key" => $certificateKeys.'/public.pem',
+				"private_key" => $certificateKeys.'/private.pem',
+				"certificate" => $certificateKeys.'/certificate.crt',
+				"fullchain_certificate" => $certificateKeys.'/fullchain.crt',
+				"order" => $certificateKeys.'/order'
+			);
+
 		}
-		if(!file_exists($this->accountKeysDir)) mkdir($this->accountKeysDir, 0777, true);
-		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeysDir);
-		$this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeysDir);
+		elseif (is_array($certificateKeys))
+		{
+
+			if (!isset($certificateKeys['certificate']) && !isset($certificateKeys['fullchain_certificate'])) throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] file path must be set');
+			if (!isset($certificateKeys['private_key'])) throw new \RuntimeException('certificateKeys[private_key] file path must be set');
+			if (!isset($certificateKeys['order'])) $certificateKeys['order'] = dirname($certificateKeys['private_key']).'/order';
+			if (!isset($certificateKeys['public_key'])) $certificateKeys['public_key'] = dirname($certificateKeys['private_key']).'/public.pem';
+
+			foreach ($certificateKeys as $param => $file) {
+				$parentDir = dirname($file);
+				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found');
+			}
+
+			$this->certificateKeys = $certificateKeys;
+
+		}
+		else
+		{
+			throw new \RuntimeException('certificateKeys must be string or array');
+		}
+
+		if (is_string($accountKeys))
+		{
+
+			$accountKeys = $certificateKeysDir.'/'.$accountKeys;
+
+			if(!file_exists($accountKeys))
+			{
+				mkdir($accountKeys, 0777, true);
+				LEFunctions::createhtaccess($accountKeys);
+			}
+
+			$this->accountKeys = array(
+				"private_key" => $accountKeys.'/private.pem',
+				"public_key" => $accountKeys.'/public.pem'
+			);
+		}
+		elseif (is_array($accountKeys))
+		{
+			if (!isset($accountKeys['private_key'])) throw new \RuntimeException('accountKeys[private_key] file path must be set');
+			if (!isset($accountKeys['public_key'])) throw new \RuntimeException('accountKeys[public_key] file path must be set');
+
+			foreach ($accountKeys as $param => $file) {
+				$parentDir = dirname($file);
+				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found');
+			}
+
+			$this->accountKeys = $accountKeys;
+		}
+		else
+		{
+			throw new \RuntimeException('accountKeys must be string or array');
+		}
+
+
+		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeys);
+		$this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeys);
 		if($this->log) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
 	}
 
@@ -113,7 +184,7 @@ class LEClient
      */
 	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa', $notBefore = '', $notAfter = '')
 	{
-		return new LEOrder($this->connector, $this->log, $this->keysDir, $basename, $domains, $keyType, $notBefore, $notAfter);
+		return new LEOrder($this->connector, $this->log, $this->certificateKeys, $basename, $domains, $keyType, $notBefore, $notAfter);
 	}
 }
 ?>
