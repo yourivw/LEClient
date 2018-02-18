@@ -1,0 +1,12 @@
+
+{
+    "repositories": [
+        {
+            "url": "https://github.com/yourivw/LEClient.git",
+            "type": "git"
+        }
+    ],
+    "require": {
+        "yourivw/LEClient": "^1.1.0“
+    }
+}
