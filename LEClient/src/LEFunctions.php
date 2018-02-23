@@ -42,12 +42,16 @@ class LEFunctions
      * @param string	$directory		The directory in which to store the new keys. If set to null or empty string - privateKeyFile and publicKeyFile will be treated as absolute paths.
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
+     * @param string	$keySize 	RSA key size, must be between 2048 and 4096 (default is 4096)
      */
-	public function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
+	public function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 4096)
 	{
+
+		if ($keySize < 2048 || $keySize > 4096)  throw new \RuntimeException("RSA key size must be between 2048 and 4096");
+
 		$res = openssl_pkey_new(array(
 			"private_key_type" => OPENSSL_KEYTYPE_RSA,
-			"private_key_bits" => 4096,
+			"private_key_bits" => intval($keySize),
 		));
 
 		if(!openssl_pkey_export($res, $privateKey)) throw new \RuntimeException("RSA keypair export failed!");
@@ -74,15 +78,29 @@ class LEFunctions
      * @param string	$directory		The directory in which to store the new keys. If set to null or empty string - privateKeyFile and publicKeyFile will be treated as absolute paths.
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
+     * @param string	$keysize  EC key size, possible values are 256 (prime256v1) or 384 (secp384r1), default is 256
      */
-	public function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem')
+	public function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 256)
 	{
-	   if (version_compare(PHP_VERSION, '7.1.0') == -1) throw new \RuntimeException("PHP 7.1+ required for EC keys");
+		if (version_compare(PHP_VERSION, '7.1.0') == -1) throw new \RuntimeException("PHP 7.1+ required for EC keys");
 
-		$res = openssl_pkey_new(array(
-			"private_key_type" => OPENSSL_KEYTYPE_EC,
-			"curve_name" => "prime256v1",
-		));
+
+		if ($keySize == 256)
+		{
+				$res = openssl_pkey_new(array(
+						"private_key_type" => OPENSSL_KEYTYPE_EC,
+						"curve_name" => "prime256v1",
+				));
+		}
+		elseif ($keySize == 384)
+		{
+				$res = openssl_pkey_new(array(
+						"private_key_type" => OPENSSL_KEYTYPE_EC,
+						"curve_name" => "secp384r1",
+				));
+		}
+		else throw new \RuntimeException("EC key size must be 256 or 384");
+
 
 		if(!openssl_pkey_export($res, $privateKey)) throw new \RuntimeException("EC keypair export failed!");
 
