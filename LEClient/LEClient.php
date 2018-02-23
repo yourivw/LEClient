@@ -45,8 +45,8 @@ require_once('src/LEFunctions.php');
  */
 class LEClient
 {
-	private $baseURL = 			'https://acme-v02.api.letsencrypt.org';
-	private $stagingBaseURL = 	'https://acme-staging-v02.api.letsencrypt.org';
+	const LE_PRODUCTION = 'https://acme-v02.api.letsencrypt.org';
+	const LE_STAGING = 'https://acme-staging-v02.api.letsencrypt.org';
 
 	private $certificatesKeys;
 	private $accountKeys;
@@ -64,18 +64,28 @@ class LEClient
      * Initiates the LetsEncrypt main client.
      *
      * @param array		$email	 		The array of strings containing e-mail addresses. Only used in this function when creating a new account.
-     * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
+     * @param boolean	$acmeURL		ACME URL, can be string or one of predefined values: LE_STAGING or LE_PRODUCTION. Defaults to LE_STAGING.
      * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
      * @param string 	$certificateKeys 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
 		 * @param array 	$certificateKeys 		Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
      * @param string 	$accountKeys The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
 		 * @param array 	$accountKeys Optional array containing location of account private and public keys. Required paths are private_key, public_key.
      */
-	public function __construct($email, $staging = false, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
+	public function __construct($email, $acmeURL = LEClient::LE_STAGING, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
 	{
 
 		$this->log = $log;
-		if($staging) $this->baseURL = $this->stagingBaseURL;
+
+		if (is_bool($acmeURL))
+		{
+			if ($acmeURL === true) $this->baseURL = LEClient::LE_STAGING;
+			elseif ($acmeURL === false) $this->baseURL = LEClient::LE_PRODUCTION;
+		}
+		elseif (is_string($acmeURL))
+		{
+			$this->baseURL = $acmeURL;
+		}
+		else throw new \RuntimeException('acmeURL must be set to string or bool (legacy)');
 
 		if (is_array($certificateKeys) && is_string($accountKeys)) throw new \RuntimeException('when certificateKeys is array, accountKeys must be array also');
 		elseif (is_array($accountKeys) && is_string($certificateKeys)) throw new \RuntimeException('when accountKeys is array, certificateKeys must be array also');
