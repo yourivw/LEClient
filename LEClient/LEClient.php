@@ -176,13 +176,13 @@ class LEClient
      *
      * @param string	$basename	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 	$domains 	The array of strings containing the domain names on the certificate.
-	 * @param string 	$keyType 	Type of the key we want to use for certificate. Supported values are "rsa" (default) and "ec".
+     * @param string 		$keyType 	Type of the key we want to use for certificate. Can be provided in ALGO-SIZE format (ex. rsa-4096 or ec-256) or simple "rsa" and "ec" (using default sizes)
      * @param string 	$notBefore	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid. Defaults to the moment the order is finalized. (optional)
      * @param string 	$notAfter  	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid. Defaults to 90 days past the moment the order is finalized. (optional)
      *
      * @return LEOrder	The LetsEncrypt Order instance which is either retrieved or created.
      */
-	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa', $notBefore = '', $notAfter = '')
+	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa-4096', $notBefore = '', $notAfter = '')
 	{
 		return new LEOrder($this->connector, $this->log, $this->certificateKeys, $basename, $domains, $keyType, $notBefore, $notAfter);
 	}
