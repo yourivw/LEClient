@@ -45,8 +45,8 @@ require_once('src/LEFunctions.php');
  */
 class LEClient
 {
-	private $baseURL = 			'https://acme-v02.api.letsencrypt.org';
-	private $stagingBaseURL = 	'https://acme-staging-v02.api.letsencrypt.org';
+	const LE_PRODUCTION = 'https://acme-v02.api.letsencrypt.org';
+	const LE_STAGING = 'https://acme-staging-v02.api.letsencrypt.org';
 
 	private $certificatesKeys;
 	private $accountKeys;
@@ -64,18 +64,28 @@ class LEClient
      * Initiates the LetsEncrypt main client.
      *
      * @param array		$email	 		The array of strings containing e-mail addresses. Only used in this function when creating a new account.
-     * @param boolean	$staging		Set true to use the staging server. Defaults to false, meaning it uses the production server. (optional)
+     * @param boolean	$acmeURL		ACME URL, can be string or one of predefined values: LE_STAGING or LE_PRODUCTION. Defaults to LE_STAGING.
      * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
      * @param string 	$certificateKeys 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
 		 * @param array 	$certificateKeys 		Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
      * @param string 	$accountKeys The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
 		 * @param array 	$accountKeys Optional array containing location of account private and public keys. Required paths are private_key, public_key.
      */
-	public function __construct($email, $staging = false, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
+	public function __construct($email, $acmeURL = LEClient::LE_STAGING, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
 	{
 
 		$this->log = $log;
-		if($staging) $this->baseURL = $this->stagingBaseURL;
+
+		if (is_bool($acmeURL))
+		{
+			if ($acmeURL === true) $this->baseURL = LEClient::LE_STAGING;
+			elseif ($acmeURL === false) $this->baseURL = LEClient::LE_PRODUCTION;
+		}
+		elseif (is_string($acmeURL))
+		{
+			$this->baseURL = $acmeURL;
+		}
+		else throw new \RuntimeException('acmeURL must be set to string or bool (legacy)');
 
 		if (is_array($certificateKeys) && is_string($accountKeys)) throw new \RuntimeException('when certificateKeys is array, accountKeys must be array also');
 		elseif (is_array($accountKeys) && is_string($certificateKeys)) throw new \RuntimeException('when accountKeys is array, certificateKeys must be array also');
@@ -176,13 +186,13 @@ class LEClient
      *
      * @param string	$basename	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 	$domains 	The array of strings containing the domain names on the certificate.
-	 * @param string 	$keyType 	Type of the key we want to use for certificate. Supported values are "rsa" (default) and "ec".
+     * @param string 		$keyType 	Type of the key we want to use for certificate. Can be provided in ALGO-SIZE format (ex. rsa-4096 or ec-256) or simple "rsa" and "ec" (using default sizes)
      * @param string 	$notBefore	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid. Defaults to the moment the order is finalized. (optional)
      * @param string 	$notAfter  	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid. Defaults to 90 days past the moment the order is finalized. (optional)
      *
      * @return LEOrder	The LetsEncrypt Order instance which is either retrieved or created.
      */
-	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa', $notBefore = '', $notAfter = '')
+	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa-4096', $notBefore = '', $notAfter = '')
 	{
 		return new LEOrder($this->connector, $this->log, $this->certificateKeys, $basename, $domains, $keyType, $notBefore, $notAfter);
 	}

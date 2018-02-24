@@ -42,6 +42,7 @@ class LEOrder
 	private $certificateKeys;
 	private $orderURL;
 	private $keyType;
+	private $keySize;
 
 	public $status;
 	public $expires;
@@ -65,16 +66,37 @@ class LEOrder
      * @param array 		$certificateKeys 	Array containing location of certificate keys files.
      * @param string 		$basename 	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 		$domains 	The array of strings containing the domain names on the certificate.
-	 * @param string 		$keyType 	Type of the key we want to use for certificate. Supported values are "rsa" (default) and "ec".
+     * @param string 		$keyType 	Type of the key we want to use for certificate. Can be provided in ALGO-SIZE format (ex. rsa-4096 or ec-256) or simple "rsa" and "ec" (using default sizes)
      * @param string 		$notBefore 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid.
      * @param string 		$notAfter 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid.
      */
-	public function __construct($connector, $log, $certificateKeys, $basename, $domains, $keyType, $notBefore, $notAfter)
+	public function __construct($connector, $log, $certificateKeys, $basename, $domains, $keyType = 'rsa-4096', $notBefore, $notAfter)
 	{
 		$this->connector = $connector;
 		$this->basename = $basename;
 		$this->log = $log;
-		$this->keyType = $keyType;
+
+		if ($keyType == 'rsa')
+		{
+			$this->keyType = 'rsa';
+			$this->keySize = 4096;
+		}
+		elseif ($keyType == 'ec')
+		{
+			$this->keyType = 'ec';
+			$this->keySize = 256;
+		}
+		else
+		{
+			preg_match_all('/^(rsa|ec)\-([0-9]{3,4})$/', $keyType, $keyTypeParts, PREG_SET_ORDER, 0);
+
+			if (!empty($keyTypeParts))
+			{
+				$this->keyType = $keyTypeParts[0][1];
+				$this->keySize = intval($keyTypeParts[0][2]);
+			}
+			else throw new \RuntimeException('Key type \'' . $keyType . '\' not supported.');
+		}
 
 		$this->certificateKeys = $certificateKeys;
 
@@ -167,11 +189,11 @@ class LEOrder
 					file_put_contents($this->certificateKeys['order'], $this->orderURL);
 					if ($this->keyType == "rsa")
 					{
-						LEFunctions::RSAgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key']);
+						LEFunctions::RSAgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key'], $this->keySize);
 					}
 					elseif ($this->keyType == "ec")
 					{
-						LEFunctions::ECgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key']);
+						LEFunctions::ECgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key'], $this->keySize);
 					}
 					else
 					{
