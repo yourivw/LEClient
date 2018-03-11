@@ -44,7 +44,7 @@ class LEFunctions
      * @param string	$publicKeyFile  The filename for the public key file.
      * @param string	$keySize 	RSA key size, must be between 2048 and 4096 (default is 4096)
      */
-	public function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 4096)
+	public static function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 4096)
 	{
 
 		if ($keySize < 2048 || $keySize > 4096)  throw new \RuntimeException("RSA key size must be between 2048 and 4096");
@@ -80,7 +80,7 @@ class LEFunctions
      * @param string	$publicKeyFile  The filename for the public key file.
      * @param string	$keysize  EC key size, possible values are 256 (prime256v1) or 384 (secp384r1), default is 256
      */
-	public function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 256)
+	public static function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 256)
 	{
 		if (version_compare(PHP_VERSION, '7.1.0') == -1) throw new \RuntimeException("PHP 7.1+ required for EC keys");
 
@@ -157,7 +157,7 @@ class LEFunctions
      * @param object	$data		The data to print.
      * @param string	$function	The function name to print above. Defaults to the calling function's name from the stacktrace. (optional)
      */
-	public function log($data, $function = '')
+	public static function log($data, $function = '')
 	{
 		$e = new Exception();
 		$trace = $e->getTrace();
@@ -187,7 +187,7 @@ class LEFunctions
      *
      * @return boolean	Returns true if the challenge is valid, false if not.
      */
-	public function checkHTTPChallenge($domain, $token, $keyAuthorization)
+	public static function checkHTTPChallenge($domain, $token, $keyAuthorization)
 	{
 		$requestURL = $domain . '/.well-known/acme-challenge/' . $token;
 		$handle = curl_init();
@@ -206,7 +206,7 @@ class LEFunctions
      *
      * @return boolean	Returns true if the challenge is valid, false if not.
      */
-	public function checkDNSChallenge($domain, $DNSDigest)
+	public static function checkDNSChallenge($domain, $DNSDigest)
 	{
 		$DNS = '_acme-challenge.' . str_replace('*.', '', $domain);
 		$records = dns_get_record($DNS, DNS_TXT);
@@ -224,7 +224,7 @@ class LEFunctions
      *
      * @param string	$directory	The directory in which to put the .htaccess file.
      */
-	public function createhtaccess($directory)
+	public static function createhtaccess($directory)
 	{
 		file_put_contents($directory . '.htaccess', "order deny,allow\ndeny from all");
 	}
