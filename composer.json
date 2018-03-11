@@ -1,5 +1,7 @@
-
 {
+    "name": "yourivw/LEClient",
+    "type": "library",
+    "description": "PHP LetsEncrypt client library for ACME v2",
     "repositories": [
         {
             "url": "https://github.com/yourivw/LEClient.git",
