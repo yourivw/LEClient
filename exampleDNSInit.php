@@ -26,7 +26,7 @@ if(!$order->allAuthorizationsValid())
 		foreach($pending as $challenge)
 		{
 			// For the purpose of this example, a fictitious functions creates or updates the ACME challenge DNS record for this domain. 
-			setDNSRecord($challenge['identifier'], $challenge['DNSDigest'])
+			setDNSRecord($challenge['identifier'], $challenge['DNSDigest']);
 		}
 	}
 }
