@@ -151,7 +151,7 @@ class LEOrder
 			{
 				if(preg_match('~Location: (\S+)~i', $post['header'], $matches))
 				{
-					$this->orderURL = trim($matches[1])
+					$this->orderURL = trim($matches[1]);
 					file_put_contents($this->orderDir . 'order', $this->orderURL);
 					LEFunctions::RSAgenerateKeys($this->orderDir);
 					
