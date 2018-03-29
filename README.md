@@ -3,7 +3,9 @@ PHP LetsEncrypt client library for ACME v2. The aim of this client is to make an
 
 ## Current version
 
-The current version is 1.1.0
+The current version is 1.1.1
+
+The example codes below are to be updated.
 
 This client was developed with the use of the LetsEncrypt staging server for version 2. While version 2 is still being developed and implemented by LetsEncrypt at this moment, the project might be subject to change.
 
