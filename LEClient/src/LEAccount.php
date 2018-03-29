@@ -30,7 +30,7 @@
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.0
+ * @version    1.1.1
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -178,7 +178,7 @@ class LEAccount
 		LEFunctions::RSAgenerateKeys(null, $this->accountKeys['private_key'].'.new', $this->accountKeys['public_key'].'.new');
 		$privateKey = openssl_pkey_get_private(file_get_contents($this->accountKeys['private_key'].'.new'));
 		$details = openssl_pkey_get_details($privateKey);
-    $innerPayload = array('account' => $this->connector->accountURL, 'newKey' => array(
+		$innerPayload = array('account' => $this->connector->accountURL, 'newKey' => array(
 			"kty" => "RSA",
 			"n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"]),
 			"e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"])

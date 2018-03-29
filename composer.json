@@ -3,6 +3,6 @@
     "type": "library",
     "description": "PHP LetsEncrypt client library for ACME v2",
     "require": {
-        "php": "^7.1.0"
+        "php": "^5.2"
     }
 }

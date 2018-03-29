@@ -30,7 +30,7 @@
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.0
+ * @version    1.1.1
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -339,10 +339,11 @@ class LEOrder
      *
      * @param string	$identifier	The domain name to verify.
      * @param int 		$type 		The type of verification. Supporting LEOrder::CHALLENGE_TYPE_HTTP and LEOrder::CHALLENGE_TYPE_DNS.
+	 * @param boolean	$localcheck	Whether to verify the authorization locally before making the authorization request to LE. Optional, default to true.
      *
      * @return boolean	Returns true when the verification request was successful, false if not.
      */
-	public function verifyPendingOrderAuthorization($identifier, $type)
+	public function verifyPendingOrderAuthorization($identifier, $type, $localcheck = true)
 	{
 		$privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeys['private_key']));
 		$details = openssl_pkey_get_details($privateKey);
@@ -368,13 +369,13 @@ class LEOrder
 						switch($type)
 						{
 							case LEOrder::CHALLENGE_TYPE_HTTP:
-								if(LEFunctions::checkHTTPChallenge($identifier, $challenge['token'], $keyAuthorization))
+								if($localcheck == false OR LEFunctions::checkHTTPChallenge($identifier, $challenge['token'], $keyAuthorization))
 								{
 									$sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
 									$post = $this->connector->post($challenge['url'], $sign);
 									if(strpos($post['header'], "200 OK") !== false)
 									{
-										if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+										if($localcheck && $this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										while($auth->status == 'pending')
 										{
 											sleep(1);
@@ -385,18 +386,18 @@ class LEOrder
 								}
 								else
 								{
-									if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
+									if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 							case LEOrder::CHALLENGE_TYPE_DNS:
 								$DNSDigest = LEFunctions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
-								if(LEFunctions::checkDNSChallenge($identifier, $DNSDigest))
+								if($localcheck == false OR LEFunctions::checkDNSChallenge($identifier, $DNSDigest))
 								{
 									$sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
 									$post = $this->connector->post($challenge['url'], $sign);
 									if(strpos($post['header'], "200 OK") !== false)
 									{
-										if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+										if($localcheck && $this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										while($auth->status == 'pending')
 										{
 											sleep(1);
@@ -407,7 +408,7 @@ class LEOrder
 								}
 								else
 								{
-									if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' tested, found invalid.', 'function verifyPendingOrderAuthorization');
+									if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 						}
@@ -629,7 +630,7 @@ class LEOrder
 				preg_match('~-----BEGIN\sCERTIFICATE-----(.*)-----END\sCERTIFICATE-----~s', $certificate, $matches);
 				$certificate = trim(LEFunctions::Base64UrlSafeEncode(base64_decode(trim($matches[1]))));
 
-				$sign = $this->connector->signRequestJWK(array('certificate' => $certificate, 'reason' => $reason), $this->connector->revokeCert);
+				$sign = $this->connector->signRequestJWK(array('certificate' => $certificate, 'reason' => $reason), $this->connector->revokeCert, $this->certificateKeys['private_key']);
 				$post = $this->connector->post($this->connector->revokeCert, $sign);
 				if(strpos($post['header'], "200 OK") !== false)
 				{

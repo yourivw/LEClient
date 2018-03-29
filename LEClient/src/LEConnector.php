@@ -30,7 +30,7 @@
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.0
+ * @version    1.1.1
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -102,7 +102,7 @@ class LEConnector
 	{
 		if($this->accountDeactivated) throw new \RuntimeException('The account was deactivated. No further requests can be made.');
 
-		$headers = array('Accept: application/json', 'Content-Type: application/json');
+		$headers = array('Accept: application/json', 'Content-Type: application/jose+json');
 		$requestURL = preg_match('~^http~', $URL) ? $URL : $this->baseURL . $URL;
         $handle = curl_init();
         curl_setopt($handle, CURLOPT_URL, $requestURL);

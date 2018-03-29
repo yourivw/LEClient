@@ -39,7 +39,7 @@ require_once('src/LEFunctions.php');
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.0
+ * @version    1.1.1
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -67,11 +67,11 @@ class LEClient
      * @param boolean	$acmeURL		ACME URL, can be string or one of predefined values: LE_STAGING or LE_PRODUCTION. Defaults to LE_STAGING.
      * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
      * @param string 	$certificateKeys 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
-		 * @param array 	$certificateKeys 		Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
+	 * @param array 	$certificateKeys 		Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
      * @param string 	$accountKeys The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
-		 * @param array 	$accountKeys Optional array containing location of account private and public keys. Required paths are private_key, public_key.
+	 * @param array 	$accountKeys Optional array containing location of account private and public keys. Required paths are private_key, public_key.
      */
-	public function __construct($email, $acmeURL = LEClient::LE_STAGING, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
+	public function __construct($email, $acmeURL = LEClient::LE_PRODUCTION, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
 	{
 
 		$this->log = $log;
@@ -85,14 +85,13 @@ class LEClient
 		{
 			$this->baseURL = $acmeURL;
 		}
-		else throw new \RuntimeException('acmeURL must be set to string or bool (legacy)');
+		else throw new \RuntimeException('acmeURL must be set to string or bool (legacy).');
 
-		if (is_array($certificateKeys) && is_string($accountKeys)) throw new \RuntimeException('when certificateKeys is array, accountKeys must be array also');
-		elseif (is_array($accountKeys) && is_string($certificateKeys)) throw new \RuntimeException('when accountKeys is array, certificateKeys must be array also');
+		if (is_array($certificateKeys) && is_string($accountKeys)) throw new \RuntimeException('When certificateKeys is array, accountKeys must be array too.');
+		elseif (is_array($accountKeys) && is_string($certificateKeys)) throw new \RuntimeException('When accountKeys is array, certificateKeys must be array too.');
 
 		if (is_string($certificateKeys))
 		{
-
 			$certificateKeysDir = $certificateKeys;
 
 			if(!file_exists($certificateKeys))
@@ -108,32 +107,28 @@ class LEClient
 				"fullchain_certificate" => $certificateKeys.'/fullchain.crt',
 				"order" => $certificateKeys.'/order'
 			);
-
 		}
 		elseif (is_array($certificateKeys))
 		{
-
-			if (!isset($certificateKeys['certificate']) && !isset($certificateKeys['fullchain_certificate'])) throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] file path must be set');
-			if (!isset($certificateKeys['private_key'])) throw new \RuntimeException('certificateKeys[private_key] file path must be set');
+			if (!isset($certificateKeys['certificate']) && !isset($certificateKeys['fullchain_certificate'])) throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] file path must be set.');
+			if (!isset($certificateKeys['private_key'])) throw new \RuntimeException('certificateKeys[private_key] file path must be set.');
 			if (!isset($certificateKeys['order'])) $certificateKeys['order'] = dirname($certificateKeys['private_key']).'/order';
 			if (!isset($certificateKeys['public_key'])) $certificateKeys['public_key'] = dirname($certificateKeys['private_key']).'/public.pem';
 
 			foreach ($certificateKeys as $param => $file) {
 				$parentDir = dirname($file);
-				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found');
+				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found.');
 			}
 
 			$this->certificateKeys = $certificateKeys;
-
 		}
 		else
 		{
-			throw new \RuntimeException('certificateKeys must be string or array');
+			throw new \RuntimeException('certificateKeys must be string or array.');
 		}
 
 		if (is_string($accountKeys))
 		{
-
 			$accountKeys = $certificateKeysDir.'/'.$accountKeys;
 
 			if(!file_exists($accountKeys))
@@ -149,12 +144,12 @@ class LEClient
 		}
 		elseif (is_array($accountKeys))
 		{
-			if (!isset($accountKeys['private_key'])) throw new \RuntimeException('accountKeys[private_key] file path must be set');
-			if (!isset($accountKeys['public_key'])) throw new \RuntimeException('accountKeys[public_key] file path must be set');
+			if (!isset($accountKeys['private_key'])) throw new \RuntimeException('accountKeys[private_key] file path must be set.');
+			if (!isset($accountKeys['public_key'])) throw new \RuntimeException('accountKeys[public_key] file path must be set.');
 
 			foreach ($accountKeys as $param => $file) {
 				$parentDir = dirname($file);
-				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found');
+				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found.');
 			}
 
 			$this->accountKeys = $accountKeys;
@@ -167,7 +162,7 @@ class LEClient
 
 		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeys);
 		$this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeys);
-		if($this->log) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
+		if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
 	}
 
 
