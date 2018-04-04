@@ -4,6 +4,6 @@
     "description": "PHP LetsEncrypt client library for ACME v2",
     "license": "MIT",
     "require": {
-        "php": "^5.2"
+        "php": ">=5.2"
     }
 }
