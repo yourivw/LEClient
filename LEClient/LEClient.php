@@ -105,7 +105,7 @@ class LEClient
 				"private_key" => $certificateKeys.'/private.pem',
 				"certificate" => $certificateKeys.'/certificate.crt',
 				"fullchain_certificate" => $certificateKeys.'/fullchain.crt',
-				"chain" => $certificateKeys.'/chain.crt',
+				"chain" => $certificateKeys.'/chain.pem',
 				"order" => $certificateKeys.'/order'
 			);
 		}
