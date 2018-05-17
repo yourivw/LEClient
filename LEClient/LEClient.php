@@ -105,6 +105,7 @@ class LEClient
 				"private_key" => $certificateKeys.'/private.pem',
 				"certificate" => $certificateKeys.'/certificate.crt',
 				"fullchain_certificate" => $certificateKeys.'/fullchain.crt',
+				"chain" => $certificateKeys.'/chain.crt',
 				"order" => $certificateKeys.'/order'
 			);
 		}
@@ -114,6 +115,7 @@ class LEClient
 			if (!isset($certificateKeys['private_key'])) throw new \RuntimeException('certificateKeys[private_key] file path must be set.');
 			if (!isset($certificateKeys['order'])) $certificateKeys['order'] = dirname($certificateKeys['private_key']).'/order';
 			if (!isset($certificateKeys['public_key'])) $certificateKeys['public_key'] = dirname($certificateKeys['private_key']).'/public.pem';
+			if (!isset($certificateKeys['chain'])) { $certificateKeys['chain'] = dirname($certificateKeys['fullchain_certificate']) . '/chain.pem'; }
 
 			foreach ($certificateKeys as $param => $file) {
 				$parentDir = dirname($file);

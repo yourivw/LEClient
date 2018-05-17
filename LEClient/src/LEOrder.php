@@ -580,13 +580,29 @@ class LEOrder
 
 					if(count($matches[0]) > 1 && isset($this->certificateKeys['fullchain_certificate']))
 					{
-						$fullchain = $matches[0][0]."\n";
+						$chain = NULL;
+						$fullchain = NULL;
+						if (isset($this->certificateKeys['chain'])) {
+							$chain = "\n";
+						}
+						if (isset($this->certificateKeys['fullchain_certificate'])) {
+							$fullchain = $matches[0][0]."\n";
+						}
 						for($i=1;$i<count($matches[0]);$i++)
 						{
-							$fullchain .= $matches[0][$i]."\n";
-
+							if (isset($this->certificateKeys['chain'])) {
+								$chain .= $matches[0][$i]."\n";
+							}
+							if (isset($this->certificateKeys['fullchain_certificate'])) {
+								$fullchain .= $matches[0][$i] . "\n";
+							}
 						}
-						file_put_contents(trim($this->certificateKeys['fullchain_certificate']), $fullchain);
+						if (!empty($fullchain)) {
+							file_put_contents(trim($this->certificateKeys['fullchain_certificate']), $fullchain);
+						}
+						if (!empty($chain)) {
+							file_put_contents(trim($this->certificateKeys['chain']), $chain);
+						}
 					}
 					if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' saved', 'function getCertificate');
 					return true;
