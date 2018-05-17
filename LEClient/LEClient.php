@@ -90,44 +90,7 @@ class LEClient
 		if (is_array($certificateKeys) && is_string($accountKeys)) throw new \RuntimeException('When certificateKeys is array, accountKeys must be array too.');
 		elseif (is_array($accountKeys) && is_string($certificateKeys)) throw new \RuntimeException('When accountKeys is array, certificateKeys must be array too.');
 
-		if (is_string($certificateKeys))
-		{
-			$certificateKeysDir = $certificateKeys;
-
-			if(!file_exists($certificateKeys))
-			{
-				mkdir($certificateKeys, 0777, true);
-				LEFunctions::createhtaccess($certificateKeys);
-			}
-
-			$this->certificateKeys = array(
-				"public_key" => $certificateKeys.'/public.pem',
-				"private_key" => $certificateKeys.'/private.pem',
-				"certificate" => $certificateKeys.'/certificate.crt',
-				"fullchain_certificate" => $certificateKeys.'/fullchain.crt',
-				"chain" => $certificateKeys.'/chain.pem',
-				"order" => $certificateKeys.'/order'
-			);
-		}
-		elseif (is_array($certificateKeys))
-		{
-			if (!isset($certificateKeys['certificate']) && !isset($certificateKeys['fullchain_certificate'])) throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] file path must be set.');
-			if (!isset($certificateKeys['private_key'])) throw new \RuntimeException('certificateKeys[private_key] file path must be set.');
-			if (!isset($certificateKeys['order'])) $certificateKeys['order'] = dirname($certificateKeys['private_key']).'/order';
-			if (!isset($certificateKeys['public_key'])) $certificateKeys['public_key'] = dirname($certificateKeys['private_key']).'/public.pem';
-			if (!isset($certificateKeys['chain'])) { $certificateKeys['chain'] = dirname($certificateKeys['fullchain_certificate']) . '/chain.pem'; }
-
-			foreach ($certificateKeys as $param => $file) {
-				$parentDir = dirname($file);
-				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found.');
-			}
-
-			$this->certificateKeys = $certificateKeys;
-		}
-		else
-		{
-			throw new \RuntimeException('certificateKeys must be string or array.');
-		}
+		$this->setCertificateKeys($certificateKeys);
 
 		if (is_string($accountKeys))
 		{
@@ -177,6 +140,57 @@ class LEClient
 	{
 		return $this->account;
 	}
+
+    /**
+     * Updates the CertificateKeys, useful for changing the domain information we want to place an order on while keeping the same account details
+     *
+     * @param string|array 	$certificateKeys 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
+     * 						$certificateKeys 		Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
+     *
+     * @return LEClient	The LetsEncrypt LEClient instance
+     */
+    public function setCertificateKeys($certificateKeys)
+    {
+        if (is_string($certificateKeys))
+        {
+            $certificateKeysDir = $certificateKeys;
+
+            if(!file_exists($certificateKeys))
+            {
+                mkdir($certificateKeys, 0777, true);
+                LEFunctions::createhtaccess($certificateKeys);
+            }
+
+            $this->certificateKeys = array(
+                "public_key" => $certificateKeys.'/public.pem',
+                "private_key" => $certificateKeys.'/private.pem',
+                "certificate" => $certificateKeys.'/certificate.crt',
+                "fullchain_certificate" => $certificateKeys.'/fullchain.crt',
+                "chain" => $certificateKeys.'/chain.pem',
+                "order" => $certificateKeys.'/order'
+            );
+        }
+	    elseif (is_array($certificateKeys))
+        {
+            if (!isset($certificateKeys['certificate']) && !isset($certificateKeys['fullchain_certificate'])) throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] file path must be set.');
+            if (!isset($certificateKeys['private_key'])) throw new \RuntimeException('certificateKeys[private_key] file path must be set.');
+            if (!isset($certificateKeys['order'])) $certificateKeys['order'] = dirname($certificateKeys['private_key']).'/order';
+            if (!isset($certificateKeys['public_key'])) $certificateKeys['public_key'] = dirname($certificateKeys['private_key']).'/public.pem';
+            if (!isset($certificateKeys['chain'])) { $certificateKeys['chain'] = dirname($certificateKeys['fullchain_certificate']) . '/chain.pem'; }
+
+            foreach ($certificateKeys as $param => $file) {
+                $parentDir = dirname($file);
+                if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found.');
+            }
+
+            $this->certificateKeys = $certificateKeys;
+        }
+        else
+        {
+            throw new \RuntimeException('certificateKeys must be string or array.');
+        }
+        return $this;
+    }
 
     /**
      * Returns a LetsEncrypt order. If an order exists, this one is returned. If not, a new order is created and returned.
