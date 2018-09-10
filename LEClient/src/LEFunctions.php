@@ -54,7 +54,13 @@ class LEFunctions
 			"private_key_bits" => intval($keySize),
 		));
 
-		if(!openssl_pkey_export($res, $privateKey)) throw new \RuntimeException("RSA keypair export failed!");
+		if(!openssl_pkey_export($res, $privateKey, NULL, $config)) {
+			$error = "RSA keypair export failed!! Error: ".PHP_EOL;
+			while($message = openssl_error_string()){
+				$error .= $message.PHP_EOL;
+			}
+			throw new \RuntimeException($error);
+		}
 
 		$details = openssl_pkey_get_details($res);
 
