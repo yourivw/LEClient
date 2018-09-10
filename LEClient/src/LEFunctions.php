@@ -53,6 +53,14 @@ class LEFunctions
 			"private_key_type" => OPENSSL_KEYTYPE_RSA,
 			"private_key_bits" => intval($keySize),
 		));
+		
+		if ($res === false) {
+			$error = "Could not generate key pair! Check your OpenSSL configuration. OpenSSL Error: ".PHP_EOL;
+			while($message = openssl_error_string()){
+				$error .= $message.PHP_EOL;
+			}
+			throw new \RuntimeException($error);
+		}
 
 		if(!openssl_pkey_export($res, $privateKey, NULL, $config)) {
 			$error = "RSA keypair export failed!! Error: ".PHP_EOL;
