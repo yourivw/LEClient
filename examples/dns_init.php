@@ -1,8 +1,12 @@
 <?php
-//Sets the maximum execution time to two minutes, to be sure.
+// Sets the maximum execution time to two minutes, to be sure.
 ini_set('max_execution_time', 120);
-// Including the LetsEncrypt Client.
-require_once('LEClient/LEClient.php');
+// Including the autoloader.
+include __DIR__.'/../vendor/autoload.php';
+
+// Importing the classes.
+use LEClient\LEClient;
+use LEClient\LEOrder;
 
 // Listing the contact information in case a new account has to be created.
 $email = array('info@example.org');
