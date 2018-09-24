@@ -1,2 +1,4 @@
-.idea
-keys/*
+.idea/
+keys/
+vendor/
+composer.lock
