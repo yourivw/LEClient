@@ -106,7 +106,7 @@ class LEOrder
 			if (filter_var($this->orderURL, FILTER_VALIDATE_URL))
 			{
 				$get = $this->connector->get($this->orderURL);
-				if(strpos($get['header'], "200 OK") !== false)
+				if(strpos($get['header'], "200 OK") !== false && $get['body']['status'] != "invalid")
 				{
 					$orderdomains = array_map(function($ident) { return $ident['value']; }, $get['body']['identifiers']);
 					$diff = array_merge(array_diff($orderdomains, $domains), array_diff($domains, $orderdomains));
