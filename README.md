@@ -23,10 +23,12 @@ This client also depends on cURL and OpenSSL.
 
 ### Installing
 
-Download and install the LEClient folder and examples wherever you want to install it. You can include the library by adding the following:
-```php
-require_once('LEClient/LEClient.php');
+Using composer:
+```bash
+composer require yourivw/leclient
 ```
+
+Although it is possible to add this to your own autoloader, it's not recommended as you'll have no control of the dependencies. If you haven't used composer before, I strongly recommend you check it out at [https://getcomposer.org](https://getcomposer.org).
 
 It is advisable to cut the script some slack regarding execution time by setting a higher maximum time. There are several ways to do so. One it to add the following to the top of the page:
 ```php
@@ -41,6 +43,8 @@ The basic functions and its necessary arguments are shown here. An extended desc
 
 Initiating the client:
 ```php
+use LEClient\LEClient;
+
 $client = new LEClient($email);                               // Initiating a basic LEClient with an array of string e-mail address(es).
 $client = new LEClient($email, true);                         // Initiating a LECLient and use the LetsEncrypt staging URL.
 $client = new LEClient($email, true, LEClient::LOG_STATUS);   // Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
@@ -84,6 +88,8 @@ $revoke     = $order->revokeCertificate($reason);                           // R
 
 Supportive functions:
 ```php
+use LEClient\LEFunctions;
+
 LEFunctions::RSAGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  // Generate a RSA keypair in the given directory. Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
 LEFunctions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  	// Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
 LEFunctions::Base64UrlSafeEncode($input);                                   // Encode the input string as a base64 URL safe string.
@@ -102,6 +108,8 @@ LetsEncrypt (ACME) performs authorizations on the domains you want to include on
 
 For this example, we assume there is one domain left to verify.
 ```php
+use LEClient\LEOrder;
+
 $pending = $order->getPendingAuthorizations(LEOrder::CHALLENGE_TYPE_HTTP);
 ```
 This returns an array:
@@ -172,4 +180,4 @@ When the client created the keys directory for the first time, it will store a .
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
