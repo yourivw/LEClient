@@ -17,7 +17,7 @@ Also have a look at the [LetsEncrypt documentation](https://letsencrypt.org/docs
 
 ### Prerequisites
 
-The minimum required PHP version is 7.1.0 due to the implementation of ECDSA. Version 1.0.0 does still work with PHP 5.2 since it is not yet compatible with ECDSA, and will be kept available, but will not be maintained.
+The minimum required PHP version is 5.2.0. Version 7.1.0 is required for EC keys. The function generating EC keys will throw an exception when trying to generate EC keys with a PHP version below 7.1.0. Version 1.0.0 will be kept available, but will not be maintained.
 
 This client also depends on cURL and OpenSSL.
 
