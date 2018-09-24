@@ -91,7 +91,7 @@ class LEAuthorization
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function updateData');
+			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
 		}
 	}
 	
