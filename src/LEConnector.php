@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Connector class, containing the functions necessary to sign with JSON Web Key and Key ID, and perform GET, POST and HEAD requests.
  *

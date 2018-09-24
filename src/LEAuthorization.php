@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Authorization class, getting LetsEncrypt authorization data associated with a LetsEncrypt Order instance.
  *

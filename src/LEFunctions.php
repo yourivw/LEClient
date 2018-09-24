@@ -1,5 +1,9 @@
 <?php
 
+namespace LEClient;
+
+use Exception;
+
 /**
  * LetsEncrypt Functions class, supplying the LetsEncrypt Client with supportive functions.
  *

@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Order class, containing the functions and data associated with a specific LetsEncrypt order.
  *

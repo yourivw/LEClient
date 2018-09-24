@@ -1,5 +1,7 @@
 <?php
 
+namespace LEClient;
+
 /**
  * LetsEncrypt Account class, containing the functions and data associated with a LetsEncrypt account.
  *
