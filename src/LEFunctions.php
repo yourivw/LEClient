@@ -57,7 +57,7 @@ class LEFunctions
 			"private_key_type" => OPENSSL_KEYTYPE_RSA,
 			"private_key_bits" => intval($keySize),
 		));
-		
+
 		if ($res === false) {
 			$error = "Could not generate key pair! Check your OpenSSL configuration. OpenSSL Error: ".PHP_EOL;
 			while($message = openssl_error_string()){
@@ -101,7 +101,7 @@ class LEFunctions
 	public static function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 256)
 	{
 		if (version_compare(PHP_VERSION, '7.1.0') == -1) throw new \RuntimeException("PHP 7.1+ required for EC keys.");
-		
+
 		if ($keySize == 256)
 		{
 				$res = openssl_pkey_new(array(
@@ -247,5 +247,3 @@ class LEFunctions
 		file_put_contents($directory . '.htaccess', "order deny,allow\ndeny from all");
 	}
 }
-
-?>

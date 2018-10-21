@@ -275,5 +275,3 @@ class LEConnector
         return json_encode($data);
     }
 }
-
-?>
