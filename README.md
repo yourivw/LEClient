@@ -45,10 +45,10 @@ Initiating the client:
 ```php
 use LEClient\LEClient;
 
-$client = new LEClient($email);                               						// Initiating a basic LEClient with an array of string e-mail address(es).
-$client = new LEClient($email, true);                         						// Initiating a LECLient and use the LetsEncrypt staging URL.
-$client = new LEClient($email, true, LEClient::LOG_STATUS);   						// Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
-$client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/');   				// Initiating a LEClient and select custom certificate keys directory (string or array)
+$client = new LEClient($email);                               				// Initiating a basic LEClient with an array of string e-mail address(es).
+$client = new LEClient($email, true);                         				// Initiating a LECLient and use the LetsEncrypt staging URL.
+$client = new LEClient($email, true, LEClient::LOG_STATUS);   				// Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
+$client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/');   			// Initiating a LEClient and select custom certificate keys directory (string or array)
 $client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/', '__account/');	// Initiating a LEClient and select custom account keys directory (string or array)
 ```
 The client will automatically create a new account if there isn't one found. It will forward the e-mail address(es) supplied during initiation, as shown above.
@@ -66,8 +66,8 @@ $acct->deactivateAccount();     // Deactivates the account with LetsEncrypt.
 
 Creating a certificate order instance. If there is an order found, stored locally, it will use this order. Otherwise, it will create a new order. If the supplied domain names don't match the order, a new order is created as well. The construction of the LetsEncrypt Order instance:
 ```php
-$order = $client->getOrCreateOrder($basename, $domains);                          			// Get or create order. The basename is preferably the top domain name. This will be the directory in which the keys are stored. Supply an array of string domain names to create a certificate for.
-$order = $client->getOrCreateOrder($basename, $domains, $keyType);              			// Get or create order. keyType can be set to "ec" to get ECDSA certificate. "rsa-4096" is default value. Accepts ALGO-SIZE format.
+$order = $client->getOrCreateOrder($basename, $domains);                          	    // Get or create order. The basename is preferably the top domain name. This will be the directory in which the keys are stored. Supply an array of string domain names to create a certificate for.
+$order = $client->getOrCreateOrder($basename, $domains, $keyType);              	    // Get or create order. keyType can be set to "ec" to get ECDSA certificate. "rsa-4096" is default value. Accepts ALGO-SIZE format.
 $order = $client->getOrCreateOrder($basename, $domains, $keyType, $notBefore);              // Get or create order. Supply a notBefore date as a string similar to 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss).
 $order = $client->getOrCreateOrder($basename, $domains, $keyType, $notBefore, $notAfter);   // Get or create order. Supply a notBefore and notAfter date as a string similar to 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss).
 ```
@@ -93,7 +93,7 @@ Supportive functions:
 use LEClient\LEFunctions;
 
 LEFunctions::RSAGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  // Generate a RSA keypair in the given directory. Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
-LEFunctions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  	// Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
+LEFunctions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);   // Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
 LEFunctions::Base64UrlSafeEncode($input);                                   // Encode the input string as a base64 URL safe string.
 LEFunctions::Base64UrlSafeDecode($input);                                   // Decode a base64 URL safe encoded string.
 LEFunctions::log($data, $function);                                         // Print the data. The function variable is optional and defaults to the calling function's name.
