@@ -34,7 +34,7 @@ use Exception;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.4
+ * @version    1.1.5
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -46,7 +46,7 @@ class LEFunctions
      * @param string	$directory		The directory in which to store the new keys. If set to null or empty string - privateKeyFile and publicKeyFile will be treated as absolute paths.
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
-     * @param string	$keySize 	RSA key size, must be between 2048 and 4096 (default is 4096)
+     * @param string	$keySize 		RSA key size, must be between 2048 and 4096 (default is 4096)
      */
 	public static function RSAGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 4096)
 	{
@@ -96,7 +96,7 @@ class LEFunctions
      * @param string	$directory		The directory in which to store the new keys. If set to null or empty string - privateKeyFile and publicKeyFile will be treated as absolute paths.
      * @param string	$privateKeyFile	The filename for the private key file.
      * @param string	$publicKeyFile  The filename for the public key file.
-     * @param string	$keysize  EC key size, possible values are 256 (prime256v1) or 384 (secp384r1), default is 256
+     * @param string	$keysize  		EC key size, possible values are 256 (prime256v1) or 384 (secp384r1), default is 256
      */
 	public static function ECGenerateKeys($directory, $privateKeyFile = 'private.pem', $publicKeyFile = 'public.pem', $keySize = 256)
 	{
@@ -226,16 +226,24 @@ class LEFunctions
      */
 	public static function checkDNSChallenge($domain, $DNSDigest)
 	{
-		$DNS = '_acme-challenge.' . str_replace('*.', '', $domain);
-		$records = dns_get_record($DNS, DNS_TXT);
-		foreach($records as $record)
+		$requestURL = 'https://dns.google.com/resolve?name=_acme-challenge.' . $domain . '&type=TXT';
+		$handle = curl_init();
+        curl_setopt($handle, CURLOPT_URL, $requestURL);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
+        $response = json_decode(trim(curl_exec($handle)));
+		if($response->Status === 0)
 		{
-			if($record['host'] == $DNS && $record['type'] == 'TXT' && $record['txt'] == $DNSDigest) return true;
+			foreach($response->Answer as $answer) 
+			{
+				if($answer->type === 16)
+				{
+					if($answer->data === ('"' . $DNSDigest . '"')) return true;
+				}
+			}
 		}
 		return false;
 	}
-
-
 
     /**
      * Creates a simple .htaccess file in $directory which denies from all.

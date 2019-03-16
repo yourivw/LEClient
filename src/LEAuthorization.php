@@ -32,7 +32,7 @@ namespace LEClient;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.4
+ * @version    1.1.5
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */

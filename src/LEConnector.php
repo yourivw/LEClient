@@ -32,7 +32,7 @@ namespace LEClient;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.4
+ * @version    1.1.5
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -59,7 +59,7 @@ class LEConnector
      *
      * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
      * @param string	$baseURL 		The LetsEncrypt server URL to make requests to.
-     * @param array	$accountKeys Array containing location of account keys files.
+     * @param array		$accountKeys 	Array containing location of account keys files.
      */
 	public function __construct($log, $baseURL, $accountKeys)
 	{

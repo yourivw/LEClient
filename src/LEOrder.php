@@ -32,7 +32,7 @@ namespace LEClient;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.4
+ * @version    1.1.5
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -63,14 +63,14 @@ class LEOrder
     /**
      * Initiates the LetsEncrypt Order class. If the base name is found in the $keysDir directory, the order data is requested. If no order was found locally, if the request is invalid or when there is a change in domain names, a new order is created.
      *
-     * @param LEConnector	$connector	The LetsEncrypt Connector instance to use for HTTP requests.
-     * @param int 			$log 		The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
+     * @param LEConnector	$connector			The LetsEncrypt Connector instance to use for HTTP requests.
+     * @param int 			$log 				The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
      * @param array 		$certificateKeys 	Array containing location of certificate keys files.
-     * @param string 		$basename 	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
-     * @param array 		$domains 	The array of strings containing the domain names on the certificate.
-     * @param string 		$keyType 	Type of the key we want to use for certificate. Can be provided in ALGO-SIZE format (ex. rsa-4096 or ec-256) or simple "rsa" and "ec" (using default sizes)
-     * @param string 		$notBefore 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid.
-     * @param string 		$notAfter 	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid.
+     * @param string 		$basename 			The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
+     * @param array 		$domains 			The array of strings containing the domain names on the certificate.
+     * @param string 		$keyType 			Type of the key we want to use for certificate. Can be provided in ALGO-SIZE format (ex. rsa-4096 or ec-256) or simple "rsa" and "ec" (using default sizes)
+     * @param string 		$notBefore 			A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid.
+     * @param string 		$notAfter 			A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid.
      */
 	public function __construct($connector, $log, $certificateKeys, $basename, $domains, $keyType = 'rsa-4096', $notBefore, $notAfter)
 	{
@@ -586,7 +586,6 @@ class LEOrder
 						for($i=1;$i<count($matches[0]);$i++)
 						{
 							$fullchain .= $matches[0][$i]."\n";
-
 						}
 						file_put_contents(trim($this->certificateKeys['fullchain_certificate']), $fullchain);
 					}

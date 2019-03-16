@@ -32,7 +32,7 @@ namespace LEClient;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.4
+ * @version    1.1.5
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -56,13 +56,13 @@ class LEClient
     /**
      * Initiates the LetsEncrypt main client.
      *
-     * @param array		$email	 		The array of strings containing e-mail addresses. Only used in this function when creating a new account.
-     * @param boolean	$acmeURL		ACME URL, can be string or one of predefined values: LE_STAGING or LE_PRODUCTION. Defaults to LE_STAGING.
-     * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
-     * @param string 	$certificateKeys 		The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
-     * @param array 	$certificateKeys 		Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
-     * @param string 	$accountKeys The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
-     * @param array 	$accountKeys Optional array containing location of account private and public keys. Required paths are private_key, public_key.
+     * @param array		$email	 			The array of strings containing e-mail addresses. Only used in this function when creating a new account.
+     * @param boolean	$acmeURL			ACME URL, can be string or one of predefined values: LE_STAGING or LE_PRODUCTION. Defaults to LE_STAGING.
+     * @param int 		$log				The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted. Defaults to LOG_OFF. (optional)
+     * @param string 	$certificateKeys 	The main directory in which all keys (and certificates), including account keys, are stored. Defaults to 'keys/'. (optional)
+     * @param array 	$certificateKeys 	Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
+     * @param string 	$accountKeys 		The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
+     * @param array 	$accountKeys 		Optional array containing location of account private and public keys. Required paths are private_key, public_key.
      */
 	public function __construct($email, $acmeURL = LEClient::LE_PRODUCTION, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
 	{
@@ -89,7 +89,7 @@ class LEClient
 
 			if(!file_exists($certificateKeys))
 			{
-				mkdir($certificateKeys, 0777, true);
+				mkdir($certificateKeys, 0755, true);
 				LEFunctions::createhtaccess($certificateKeys);
 			}
 
@@ -126,7 +126,7 @@ class LEClient
 
 			if(!file_exists($accountKeys))
 			{
-				mkdir($accountKeys, 0777, true);
+				mkdir($accountKeys, 0755, true);
 				LEFunctions::createhtaccess($accountKeys);
 			}
 
@@ -174,7 +174,7 @@ class LEClient
      *
      * @param string	$basename	The base name for the order. Preferable the top domain (example.org). Will be the directory in which the keys are stored. Used for the CommonName in the certificate as well.
      * @param array 	$domains 	The array of strings containing the domain names on the certificate.
-     * @param string 		$keyType 	Type of the key we want to use for certificate. Can be provided in ALGO-SIZE format (ex. rsa-4096 or ec-256) or simple "rsa" and "ec" (using default sizes)
+     * @param string 	$keyType 	Type of the key we want to use for certificate. Can be provided in ALGO-SIZE format (ex. rsa-4096 or ec-256) or simple "rsa" and "ec" (using default sizes)
      * @param string 	$notBefore	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) at which the certificate becomes valid. Defaults to the moment the order is finalized. (optional)
      * @param string 	$notAfter  	A date string formatted like 0000-00-00T00:00:00Z (yyyy-mm-dd hh:mm:ss) until which the certificate is valid. Defaults to 90 days past the moment the order is finalized. (optional)
      *
