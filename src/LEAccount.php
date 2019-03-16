@@ -226,5 +226,3 @@ class LEAccount
 		}
 	}
 }
-
-?>

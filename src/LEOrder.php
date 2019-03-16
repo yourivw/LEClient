@@ -656,5 +656,3 @@ class LEOrder
 		return false;
 	}
 }
-
-?>
