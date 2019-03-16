@@ -66,7 +66,7 @@ class LEFunctions
 			throw new \RuntimeException($error);
 		}
 
-		if(!openssl_pkey_export($res, $privateKey, NULL, $config)) {
+		if(!openssl_pkey_export($res, $privateKey)) {
 			$error = "RSA keypair export failed!! Error: ".PHP_EOL;
 			while($message = openssl_error_string()){
 				$error .= $message.PHP_EOL;
