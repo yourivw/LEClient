@@ -32,7 +32,7 @@ namespace LEClient;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.5
+ * @version    1.1.6
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -67,7 +67,12 @@ class LEAccount
 
 		if(!file_exists($this->accountKeys['private_key']) OR !file_exists($this->accountKeys['public_key']))
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('No account found, attempting to create account.', 'function LEAccount __construct');
+			if($this->log instanceof \Psr\Log\LoggerInterface) 
+			{
+				$this->log->info('No account found, attempting to create account.');
+			}
+			else if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('No account found, attempting to create account.', 'function LEAccount __construct');
+			
 			LEFunctions::RSAgenerateKeys(null, $this->accountKeys['private_key'], $this->accountKeys['public_key']);
 			$this->connector->accountURL = $this->createLEAccount($email);
 		}
@@ -161,7 +166,11 @@ class LEAccount
 			$this->initialIp = $post['body']['initialIp'];
 			$this->createdAt = $post['body']['createdAt'];
 			$this->status = $post['body']['status'];
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account data updated.', 'function updateAccount');
+			if($this->log instanceof \Psr\Log\LoggerInterface) 
+			{
+				$this->log->info('Account data updated.');
+			}
+			else if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account data updated.', 'function updateAccount');
 			return true;
 		}
 		else
@@ -197,7 +206,11 @@ class LEAccount
 			rename($this->accountKeys['private_key'].'.new', $this->accountKeys['private_key']);
 			rename($this->accountKeys['public_key'].'.new', $this->accountKeys['public_key']);
 
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account keys changed.', 'function changeAccountKey');
+			if($this->log instanceof \Psr\Log\LoggerInterface) 
+			{
+				$this->log->info('Account keys changed.');
+			}
+			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account keys changed.', 'function changeAccountKey');
 			return true;
 		}
 		else
@@ -218,7 +231,11 @@ class LEAccount
 		if(strpos($post['header'], "200 OK") !== false)
 		{
 			$this->connector->accountDeactivated = true;
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account deactivated.', 'function deactivateAccount');
+			if($this->log instanceof \Psr\Log\LoggerInterface) 
+			{
+				$this->log->info('Account deactivated.');
+			}
+			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account deactivated.', 'function deactivateAccount');
 		}
 		else
 		{

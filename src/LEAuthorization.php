@@ -32,7 +32,7 @@ namespace LEClient;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.5
+ * @version    1.1.6
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -71,7 +71,11 @@ class LEAuthorization
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
+			if($this->log instanceof \Psr\Log\LoggerInterface) 
+			{
+				$this->log->info('Cannot find authorization \'' . $authorizationURL . '\'.');
+			}
+			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
 		}
 	}
 
@@ -91,7 +95,11 @@ class LEAuthorization
 		}
 		else
 		{
-			if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
+			if($this->log instanceof \Psr\Log\LoggerInterface) 
+			{
+				$this->log->info('Cannot find authorization \'' . $this->authorizationURL . '\'.');
+			}
+			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
 		}
 	}
 

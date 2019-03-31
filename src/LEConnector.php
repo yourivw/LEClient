@@ -32,7 +32,7 @@ namespace LEClient;
  * @author     Youri van Weegberg <youri@yourivw.nl>
  * @copyright  2018 Youri van Weegberg
  * @license    https://opensource.org/licenses/mit-license.php  MIT License
- * @version    1.1.5
+ * @version    1.1.6
  * @link       https://github.com/yourivw/LEClient
  * @since      Class available since Release 1.0.0
  */
@@ -139,7 +139,11 @@ class LEConnector
         $body = substr($response, $header_size);
 		$jsonbody = json_decode($body, true);
 		$jsonresponse = array('request' => $method . ' ' . $requestURL, 'header' => $header, 'body' => $jsonbody === null ? $body : $jsonbody);
-		if($this->log >= LECLient::LOG_DEBUG) LEFunctions::log($jsonresponse);
+		if($this->log instanceof \Psr\Log\LoggerInterface) 
+		{
+			$this->log->debug($method . ' response received', $jsonresponse);
+		}
+		elseif($this->log >= LECLient::LOG_DEBUG) LEFunctions::log($jsonresponse);
 
 		if(	(($method == 'POST' OR $method == 'GET') AND strpos($header, "200 OK") === false AND strpos($header, "201 Created") === false) OR
 			($method == 'HEAD' AND strpos($header, "200 OK") === false))

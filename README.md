@@ -3,7 +3,7 @@ PHP LetsEncrypt client library for ACME v2. The aim of this client is to make an
 
 ## Current version
 
-The current version is 1.1.5
+The current version is 1.1.6
 
 The example codes below are to be updated.
 
@@ -39,6 +39,8 @@ ini_set('max_execution_time', 120); // Maximum execution time in seconds.
 
 The basic functions and its necessary arguments are shown here. An extended description is included in each class.
 
+As of version 1.1.6, it is also possible to initiate the LEClient with a PSR-3 logger (\Psr\Log\LoggerInterface).
+
 <br />
 
 Initiating the client:
@@ -47,6 +49,7 @@ use LEClient\LEClient;
 
 $client = new LEClient($email);                               				// Initiating a basic LEClient with an array of string e-mail address(es).
 $client = new LEClient($email, true);                         				// Initiating a LECLient and use the LetsEncrypt staging URL.
+$client = new LEClient($email, true, $logger);   							// Initiating a LEClient and use a PSR-3 logger (\Psr\Log\LoggerInterface).
 $client = new LEClient($email, true, LEClient::LOG_STATUS);   				// Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
 $client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/');   			// Initiating a LEClient and select custom certificate keys directory (string or array)
 $client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/', '__account/');	// Initiating a LEClient and select custom account keys directory (string or array)
