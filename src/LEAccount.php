@@ -187,24 +187,24 @@ class LEAccount
 	public function changeAccountKeys()
 	{
 		LEFunctions::RSAgenerateKeys(null, $this->accountKeys['private_key'].'.new', $this->accountKeys['public_key'].'.new');
-		$privateKey = openssl_pkey_get_private(file_get_contents($this->accountKeys['private_key'].'.new'));
-		$details = openssl_pkey_get_details($privateKey);
-		$innerPayload = array('account' => $this->connector->accountURL, 'newKey' => array(
+		$oldPrivateKey = openssl_pkey_get_private(file_get_contents($this->accountKeys['private_key']));
+		$oldDetails = openssl_pkey_get_details($oldPrivateKey);
+		$innerPayload = array('account' => $this->connector->accountURL, 'oldKey' => array(
 			"kty" => "RSA",
-			"n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"]),
-			"e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"])
+			"n" => LEFunctions::Base64UrlSafeEncode($oldDetails["rsa"]["n"]),
+			"e" => LEFunctions::Base64UrlSafeEncode($oldDetails["rsa"]["e"])
 		));
 		$outerPayload = $this->connector->signRequestJWK($innerPayload, $this->connector->keyChange, $this->accountKeys['private_key'].'.new');
 		$sign = $this->connector->signRequestKid($outerPayload, $this->connector->accountURL, $this->connector->keyChange);
 		$post = $this->connector->post($this->connector->keyChange, $sign);
 		if(strpos($post['header'], "200 OK") !== false)
 		{
-			$this->getLEAccountData();
-
 			unlink($this->accountKeys['private_key']);
 			unlink($this->accountKeys['public_key']);
 			rename($this->accountKeys['private_key'].'.new', $this->accountKeys['private_key']);
 			rename($this->accountKeys['public_key'].'.new', $this->accountKeys['public_key']);
+			
+			$this->getLEAccountData();
 
 			if($this->log instanceof \Psr\Log\LoggerInterface) 
 			{
