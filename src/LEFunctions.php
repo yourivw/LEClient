@@ -251,6 +251,12 @@ class LEFunctions
      */
 	public static function createhtaccess($directory)
 	{
-		file_put_contents($directory . '.htaccess', "order deny,allow\ndeny from all");
+		$htaccess = '<ifModule mod_authz_core.c>' . "\n"
+			. '    Require all denied' . "\n"
+			. '</ifModule>' . "\n"
+			. '<ifModule !mod_authz_core.c>' . "\n"
+			. '    Deny from all' . "\n"
+			. '</ifModule>' . "\n";
+		file_put_contents($directory . '.htaccess', $htaccess);
 	}
 }
