@@ -231,7 +231,7 @@ class LEFunctions
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
         $response = json_decode(trim(curl_exec($handle)));
-		if($response->Status === 0)
+		if($response->Status === 0 && isset($response->Answer))
 		{
 			foreach($response->Answer as $answer) 
 			{
