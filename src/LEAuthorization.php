@@ -74,7 +74,7 @@ class LEAuthorization
 			{
 				$this->log->info('Cannot find authorization \'' . $authorizationURL . '\'.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $authorizationURL . '\'.', 'function LEAuthorization __construct');
 		}
 	}
 
@@ -98,7 +98,7 @@ class LEAuthorization
 			{
 				$this->log->info('Cannot find authorization \'' . $this->authorizationURL . '\'.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Cannot find authorization \'' . $this->authorizationURL . '\'.', 'function updateData');
 		}
 	}
 
