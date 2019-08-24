@@ -159,7 +159,7 @@ class LEClient
 		{
 			$this->log->info('LEClient finished constructing');
 		}
-		elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
+		elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
 	}
 
 
