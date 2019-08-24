@@ -439,7 +439,7 @@ class LEOrder
 											{
 												$this->log->info('DNS challenge for \'' . $identifier . '\' valid.');
 											}
-											elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+											elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										}
 										while($auth->status == 'pending')
 										{
@@ -455,7 +455,7 @@ class LEOrder
 									{
 										$this->log->info('DNS challenge for \'' . $identifier . '\' tested locally, found invalid.');
 									}
-									elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
+									elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 						}
