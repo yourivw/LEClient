@@ -11,7 +11,7 @@ This client was developed with the use of the LetsEncrypt staging server for ver
 
 ## Getting Started
 
-These instructions will get you started with this client library. Is you have any questions or find any problems, feel free to open an issue and I'll try to have a look at it.
+These instructions will get you started with this client library. If you have any questions or find any problems, feel free to open an issue and I'll try to have a look at it.
 
 Also have a look at the [LetsEncrypt documentation](https://letsencrypt.org/docs/) for more information and documentation on LetsEncrypt and ACME.
 
