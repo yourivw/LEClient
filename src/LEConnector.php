@@ -142,7 +142,7 @@ class LEConnector
 		{
 			$this->log->debug($method . ' response received', $jsonresponse);
 		}
-		elseif($this->log >= LECLient::LOG_DEBUG) LEFunctions::log($jsonresponse);
+		elseif($this->log >= LEClient::LOG_DEBUG) LEFunctions::log($jsonresponse);
 
 		if(	(($method == 'POST' OR $method == 'GET') AND strpos($header, "200 OK") === false AND strpos($header, "201 Created") === false) OR
 			($method == 'HEAD' AND strpos($header, "200 OK") === false))
