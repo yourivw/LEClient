@@ -37,20 +37,20 @@ namespace LEClient;
  */
 class LEClient
 {
-	const LE_PRODUCTION = 'https://acme-v02.api.letsencrypt.org';
-	const LE_STAGING = 'https://acme-staging-v02.api.letsencrypt.org';
+    const LE_PRODUCTION = 'https://acme-v02.api.letsencrypt.org';
+    const LE_STAGING = 'https://acme-staging-v02.api.letsencrypt.org';
 
-	private $certificateKeys;
-	private $accountKeys;
+    private $certificateKeys;
+    private $accountKeys;
 
-	private $connector;
-	private $account;
+    private $connector;
+    private $account;
 
-	private $log;
+    private $log;
 
-	const LOG_OFF = 0;		// Logs no messages or faults, except Runtime Exceptions.
-	const LOG_STATUS = 1;	// Logs only messages and faults.
-	const LOG_DEBUG = 2;	// Logs messages, faults and raw responses from HTTP requests.
+    const LOG_OFF = 0;		// Logs no messages or faults, except Runtime Exceptions.
+    const LOG_STATUS = 1;	// Logs only messages and faults.
+    const LOG_DEBUG = 2;	// Logs messages, faults and raw responses from HTTP requests.
 
     /**
      * Initiates the LetsEncrypt main client.
@@ -63,115 +63,133 @@ class LEClient
      * @param string 	$accountKeys 		The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
      * @param array 	$accountKeys 		Optional array containing location of account private and public keys. Required paths are private_key, public_key.
      */
-	public function __construct($email, $acmeURL = LEClient::LE_PRODUCTION, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
-	{
+    public function __construct($email, $acmeURL = LEClient::LE_PRODUCTION, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
+    {
+        $this->log = $log;
 
-		$this->log = $log;
+        if (!is_bool($acmeURL) && !is_string($acmeURL)) {
+            throw new \RuntimeException('acmeURL must be set to string or bool (legacy).');
+        }
 
-		if (is_bool($acmeURL))
-		{
-			if ($acmeURL === true) $this->baseURL = LEClient::LE_STAGING;
-			elseif ($acmeURL === false) $this->baseURL = LEClient::LE_PRODUCTION;
-		}
-		elseif (is_string($acmeURL))
-		{
-			$this->baseURL = $acmeURL;
-		}
-		else throw new \RuntimeException('acmeURL must be set to string or bool (legacy).');
+        $this->baseURL = $acmeURL;
 
-		if (is_array($certificateKeys) && is_string($accountKeys)) throw new \RuntimeException('When certificateKeys is array, accountKeys must be array too.');
-		elseif (is_array($accountKeys) && is_string($certificateKeys)) throw new \RuntimeException('When accountKeys is array, certificateKeys must be array too.');
+        if (is_bool($acmeURL)) {
+            if ($acmeURL === true) {
+                $this->baseURL = LEClient::LE_STAGING;
+            } elseif ($acmeURL === false) {
+                $this->baseURL = LEClient::LE_PRODUCTION;
+            }
+        }
 
-		if (is_string($certificateKeys))
-		{
-			$certificateKeysDir = $certificateKeys;
+        if (is_array($certificateKeys) && is_string($accountKeys)) {
+            throw new \RuntimeException('When certificateKeys is array, accountKeys must be array too.');
+        } elseif (is_array($accountKeys) && is_string($certificateKeys)) {
+            throw new \RuntimeException('When accountKeys is array, certificateKeys must be array too.');
+        }
 
-			if(!file_exists($certificateKeys))
-			{
-				mkdir($certificateKeys, 0755, true);
-				LEFunctions::createhtaccess($certificateKeys);
-			}
+        if (!is_string($certificateKeys) && !is_array($certificateKeys)) {
+            throw new \RuntimeException('certificateKeys must be string or array.');
+        }
 
-			$this->certificateKeys = array(
-				"public_key" => $certificateKeys.'/public.pem',
-				"private_key" => $certificateKeys.'/private.pem',
-				"certificate" => $certificateKeys.'/certificate.crt',
-				"fullchain_certificate" => $certificateKeys.'/fullchain.crt',
-				"order" => $certificateKeys.'/order'
-			);
-		}
-		elseif (is_array($certificateKeys))
-		{
-			if (!isset($certificateKeys['certificate']) && !isset($certificateKeys['fullchain_certificate'])) throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] file path must be set.');
-			if (!isset($certificateKeys['private_key'])) throw new \RuntimeException('certificateKeys[private_key] file path must be set.');
-			if (!isset($certificateKeys['order'])) $certificateKeys['order'] = dirname($certificateKeys['private_key']).'/order';
-			if (!isset($certificateKeys['public_key'])) $certificateKeys['public_key'] = dirname($certificateKeys['private_key']).'/public.pem';
+        if (is_string($certificateKeys)) {
+            $certificateKeysDir = $certificateKeys;
 
-			foreach ($certificateKeys as $param => $file) {
-				$parentDir = dirname($file);
-				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found.');
-			}
+            if (!file_exists($certificateKeys)) {
+                mkdir($certificateKeys, 0755, true);
+                LEFunctions::createhtaccess($certificateKeys);
+            }
 
-			$this->certificateKeys = $certificateKeys;
-		}
-		else
-		{
-			throw new \RuntimeException('certificateKeys must be string or array.');
-		}
+            $this->certificateKeys = [
+                "public_key" => $certificateKeys.'/public.pem',
+                "private_key" => $certificateKeys.'/private.pem',
+                "certificate" => $certificateKeys.'/certificate.crt',
+                "fullchain_certificate" => $certificateKeys.'/fullchain.crt',
+                "order" => $certificateKeys.'/order'
+            ];
+        }
 
-		if (is_string($accountKeys))
-		{
-			$accountKeys = $certificateKeysDir.'/'.$accountKeys;
+        if (is_array($certificateKeys)) {
+            if (!isset($certificateKeys['certificate']) && !isset($certificateKeys['fullchain_certificate'])) {
+                throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] file path must be set.');
+            }
+            if (!isset($certificateKeys['private_key'])) {
+                throw new \RuntimeException('certificateKeys[private_key] file path must be set.');
+            }
 
-			if(!file_exists($accountKeys))
-			{
-				mkdir($accountKeys, 0755, true);
-				LEFunctions::createhtaccess($accountKeys);
-			}
+            if (!isset($certificateKeys['order'])) {
+                $certificateKeys['order'] = dirname($certificateKeys['private_key']).'/order';
+            }
+            if (!isset($certificateKeys['public_key'])) {
+                $certificateKeys['public_key'] = dirname($certificateKeys['private_key']).'/public.pem';
+            }
 
-			$this->accountKeys = array(
-				"private_key" => $accountKeys.'/private.pem',
-				"public_key" => $accountKeys.'/public.pem'
-			);
-		}
-		elseif (is_array($accountKeys))
-		{
-			if (!isset($accountKeys['private_key'])) throw new \RuntimeException('accountKeys[private_key] file path must be set.');
-			if (!isset($accountKeys['public_key'])) throw new \RuntimeException('accountKeys[public_key] file path must be set.');
+            foreach ($certificateKeys as $param => $file) {
+                $parentDir = dirname($file);
+                if (!is_dir($parentDir)) {
+                    throw new \RuntimeException($parentDir.' directory not found.');
+                }
+            }
 
-			foreach ($accountKeys as $param => $file) {
-				$parentDir = dirname($file);
-				if (!is_dir($parentDir)) throw new \RuntimeException($parentDir.' directory not found.');
-			}
+            $this->certificateKeys = $certificateKeys;
+        }
 
-			$this->accountKeys = $accountKeys;
-		}
-		else
-		{
-			throw new \RuntimeException('accountKeys must be string or array');
-		}
+        if (!is_string($accountKeys) && !is_array($accountKeys)) {
+            throw new \RuntimeException('accountKeys must be string or array');
+        }
 
+        if (is_string($accountKeys)) {
+            $accountKeys = $certificateKeysDir . '/' . $accountKeys;
 
-		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeys);
-		$this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeys);
-		
-		if($this->log instanceof \Psr\Log\LoggerInterface) 
-		{
-			$this->log->info('LEClient finished constructing');
-		}
-		elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
-	}
+            if (!file_exists($accountKeys)) {
+                mkdir($accountKeys, 0755, true);
+                LEFunctions::createhtaccess($accountKeys);
+            }
+
+            $this->accountKeys = [
+                "private_key" => $accountKeys.'/private.pem',
+                "public_key" => $accountKeys.'/public.pem'
+            ];
+        }
+
+        if (is_array($accountKeys)) {
+            if (!isset($accountKeys['private_key'])) {
+                throw new \RuntimeException('accountKeys[private_key] file path must be set.');
+            }
+            if (!isset($accountKeys['public_key'])) {
+                throw new \RuntimeException('accountKeys[public_key] file path must be set.');
+            }
+
+            foreach ($accountKeys as $param => $file) {
+                $parentDir = dirname($file);
+
+                if (!is_dir($parentDir)) {
+                    throw new \RuntimeException($parentDir.' directory not found.');
+                }
+            }
+
+            $this->accountKeys = $accountKeys;
+        }
+
+        $this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeys);
+        $this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeys);
+        
+        if ($this->log instanceof \Psr\Log\LoggerInterface) {
+            $this->log->info('LEClient finished constructing');
+        } elseif ($this->log >= LEClient::LOG_STATUS) {
+            LEFunctions::log('LEClient finished constructing', 'function LEClient __construct');
+        }
+    }
 
 
     /**
      * Returns the LetsEncrypt account used in the current client.
-	 *
-	 * @return LEAccount	The LetsEncrypt Account instance used by the client.
+     *
+     * @return LEAccount	The LetsEncrypt Account instance used by the client.
      */
-	public function getAccount()
-	{
-		return $this->account;
-	}
+    public function getAccount()
+    {
+        return $this->account;
+    }
 
     /**
      * Returns a LetsEncrypt order. If an order exists, this one is returned. If not, a new order is created and returned.
@@ -184,8 +202,8 @@ class LEClient
      *
      * @return LEOrder	The LetsEncrypt Order instance which is either retrieved or created.
      */
-	public function getOrCreateOrder($basename, $domains, $keyType = 'rsa-4096', $notBefore = '', $notAfter = '')
-	{
-		return new LEOrder($this->connector, $this->log, $this->certificateKeys, $basename, $domains, $keyType, $notBefore, $notAfter);
-	}
+    public function getOrCreateOrder($basename, $domains, $keyType = 'rsa-4096', $notBefore = '', $notAfter = '')
+    {
+        return new LEOrder($this->connector, $this->log, $this->certificateKeys, $basename, $domains, $keyType, $notBefore, $notAfter);
+    }
 }
