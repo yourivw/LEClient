@@ -109,7 +109,7 @@ class LEConnector
             throw new \RuntimeException('The account was deactivated. No further requests can be made.');
         }
 
-        $headers = ['Accept: application/json', 'Content-Type: application/jose+json'];
+        $headers = array('Accept: application/json', 'Content-Type: application/jose+json');
         $requestURL = preg_match('~^http~', $URL) ? $URL : $this->baseURL . $URL;
 
         $handle = curl_init();
@@ -150,7 +150,7 @@ class LEConnector
         $body = substr($response, $header_size);
 
         $jsonbody = json_decode($body, true);
-        $jsonresponse = ['request' => $method . ' ' . $requestURL, 'header' => $header, 'body' => $jsonbody === null ? $body : $jsonbody];
+        $jsonresponse = array('request' => $method . ' ' . $requestURL, 'header' => $header, 'body' => $jsonbody === null ? $body : $jsonbody);
 
         if ($this->log instanceof \Psr\Log\LoggerInterface) {
             $this->log->debug($method . ' response received', $jsonresponse);
@@ -230,16 +230,16 @@ class LEConnector
         $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyFile));
         $details = openssl_pkey_get_details($privateKey);
 
-        $protected = [
+        $protected = array(
             "alg" => "RS256",
-            "jwk" => [
+            "jwk" => array(
                 "kty" => "RSA",
                 "n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"]),
                 "e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
-            ],
+            ),
             "nonce" => $this->nonce,
             "url" => $url
-        ];
+        );
 
         $payload64 = LEFunctions::Base64UrlSafeEncode(str_replace('\\/', '/', is_array($payload) ? json_encode($payload) : $payload));
         $protected64 = LEFunctions::Base64UrlSafeEncode(json_encode($protected));
@@ -247,11 +247,11 @@ class LEConnector
         openssl_sign($protected64.'.'.$payload64, $signed, $privateKey, "SHA256");
         $signed64 = LEFunctions::Base64UrlSafeEncode($signed);
 
-        $data = [
+        $data = array(
             'protected' => $protected64,
             'payload' => $payload64,
             'signature' => $signed64
-        ];
+        );
 
         return json_encode($data);
     }
@@ -274,12 +274,12 @@ class LEConnector
 
         $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyFile));
 
-        $protected = [
+        $protected = array(
             "alg" => "RS256",
             "kid" => $kid,
             "nonce" => $this->nonce,
             "url" => $url
-        ];
+        );
 
         $payload64 = LEFunctions::Base64UrlSafeEncode(str_replace('\\/', '/', is_array($payload) ? json_encode($payload) : $payload));
         $protected64 = LEFunctions::Base64UrlSafeEncode(json_encode($protected));
@@ -287,11 +287,11 @@ class LEConnector
         openssl_sign($protected64.'.'.$payload64, $signed, $privateKey, "SHA256");
         $signed64 = LEFunctions::Base64UrlSafeEncode($signed);
 
-        $data = [
+        $data = array(
             'protected' => $protected64,
             'payload' => $payload64,
             'signature' => $signed64
-        ];
+        );
 
         return json_encode($data);
     }

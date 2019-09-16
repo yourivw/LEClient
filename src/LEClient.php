@@ -99,13 +99,13 @@ class LEClient
                 LEFunctions::createhtaccess($certificateKeys);
             }
 
-            $this->certificateKeys = [
+            $this->certificateKeys = array(
                 "public_key" => $certificateKeys.'/public.pem',
                 "private_key" => $certificateKeys.'/private.pem',
                 "certificate" => $certificateKeys.'/certificate.crt',
                 "fullchain_certificate" => $certificateKeys.'/fullchain.crt',
                 "order" => $certificateKeys.'/order'
-            ];
+            );
         }
 
         if (is_array($certificateKeys)) {
@@ -145,10 +145,10 @@ class LEClient
                 LEFunctions::createhtaccess($accountKeys);
             }
 
-            $this->accountKeys = [
+            $this->accountKeys = array(
                 "private_key" => $accountKeys.'/private.pem',
                 "public_key" => $accountKeys.'/public.pem'
-            ];
+            );
         }
 
         if (is_array($accountKeys)) {

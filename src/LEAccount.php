@@ -97,7 +97,7 @@ class LEAccount
             return empty($addr) ? '' : (strpos($addr, 'mailto') === false ? 'mailto:' . $addr : $addr);
         }, $email);
 
-        $sign = $this->connector->signRequestJWK(['contact' => $contact, 'termsOfServiceAgreed' => true], $this->connector->newAccount);
+        $sign = $this->connector->signRequestJWK(array('contact' => $contact, 'termsOfServiceAgreed' => true), $this->connector->newAccount);
         $post = $this->connector->post($this->connector->newAccount, $sign);
 
         if (strpos($post['header'], "201 Created") !== false) {
@@ -116,7 +116,7 @@ class LEAccount
      */
     private function getLEAccount()
     {
-        $sign = $this->connector->signRequestJWK(['onlyReturnExisting' => true], $this->connector->newAccount);
+        $sign = $this->connector->signRequestJWK(array('onlyReturnExisting' => true), $this->connector->newAccount);
         $post = $this->connector->post($this->connector->newAccount, $sign);
 
         if (strpos($post['header'], "200 OK") !== false) {
@@ -133,7 +133,7 @@ class LEAccount
      */
     private function getLEAccountData()
     {
-        $sign = $this->connector->signRequestKid(['' => ''], $this->connector->accountURL, $this->connector->accountURL);
+        $sign = $this->connector->signRequestKid(array('' => ''), $this->connector->accountURL, $this->connector->accountURL);
         $post = $this->connector->post($this->connector->accountURL, $sign);
 
         if (strpos($post['header'], "200 OK") !== false) {
@@ -162,7 +162,7 @@ class LEAccount
             return empty($addr) ? '' : (strpos($addr, 'mailto') === false ? 'mailto:' . $addr : $addr);
         }, $email);
 
-        $sign = $this->connector->signRequestKid(['contact' => $contact], $this->connector->accountURL, $this->connector->accountURL);
+        $sign = $this->connector->signRequestKid(array('contact' => $contact), $this->connector->accountURL, $this->connector->accountURL);
         $post = $this->connector->post($this->connector->accountURL, $sign);
 
         if (strpos($post['header'], "200 OK") !== false) {
@@ -198,11 +198,11 @@ class LEAccount
         $oldPrivateKey = openssl_pkey_get_private(file_get_contents($this->accountKeys['private_key']));
         $oldDetails = openssl_pkey_get_details($oldPrivateKey);
 
-        $innerPayload = ['account' => $this->connector->accountURL, 'oldKey' => [
+        $innerPayload = array('account' => $this->connector->accountURL, 'oldKey' => array(
             "kty" => "RSA",
             "n" => LEFunctions::Base64UrlSafeEncode($oldDetails["rsa"]["n"]),
             "e" => LEFunctions::Base64UrlSafeEncode($oldDetails["rsa"]["e"])
-        ]];
+        ));
 
         $outerPayload = $this->connector->signRequestJWK($innerPayload, $this->connector->keyChange, $this->accountKeys['private_key'].'.new');
         $sign = $this->connector->signRequestKid($outerPayload, $this->connector->accountURL, $this->connector->keyChange);
@@ -235,7 +235,7 @@ class LEAccount
      */
     public function deactivateAccount()
     {
-        $sign = $this->connector->signRequestKid(['status' => 'deactivated'], $this->connector->accountURL, $this->connector->accountURL);
+        $sign = $this->connector->signRequestKid(array('status' => 'deactivated'), $this->connector->accountURL, $this->connector->accountURL);
         $post = $this->connector->post($this->connector->accountURL, $sign);
 
         if (strpos($post['header'], "200 OK") !== false) {

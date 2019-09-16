@@ -189,16 +189,17 @@ class LEOrder
     private function createOrder($domains, $notBefore, $notAfter)
     {
         if (preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notBefore) and preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notAfter)) {
-            $dns = [];
+            $dns = array();
 
             foreach ($domains as $domain) {
                 if (preg_match_all('~(\*\.)~', $domain) > 1) {
                     throw new \RuntimeException('Cannot create orders with multiple wildcards in one domain.');
                 }
-                $dns[] = ['type' => 'dns', 'value' => $domain];
+
+                $dns[] = array('type' => 'dns', 'value' => $domain);
             }
 
-            $payload = ["identifiers" => $dns, 'notBefore' => $notBefore, 'notAfter' => $notAfter];
+            $payload = array("identifiers" => $dns, 'notBefore' => $notBefore, 'notAfter' => $notAfter);
             $sign = $this->connector->signRequestKid($payload, $this->connector->accountURL, $this->connector->newOrder);
             $post = $this->connector->post($this->connector->newOrder, $sign);
 
@@ -280,7 +281,7 @@ class LEOrder
      */
     private function updateAuthorizations()
     {
-        $this->authorizations = [];
+        $this->authorizations = array();
 
         foreach ($this->authorizationURLs as $authURL) {
             if (filter_var($authURL, FILTER_VALIDATE_URL)) {
@@ -326,17 +327,17 @@ class LEOrder
 
     public function getPendingAuthorizations($type)
     {
-        $authorizations = [];
+        $authorizations = array();
 
         $privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeys['private_key']));
         $details = openssl_pkey_get_details($privateKey);
 
-        $header = [
+        $header = array(
             "e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
             "kty" => "RSA",
             "n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"])
 
-        ];
+        );
 
         $digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
 
@@ -349,22 +350,22 @@ class LEOrder
 
                     switch (strtolower($type)) {
                         case LEOrder::CHALLENGE_TYPE_HTTP:
-                            $authorizations[] = [
+                            $authorizations[] = array(
                                 'type' => LEOrder::CHALLENGE_TYPE_HTTP,
                                 'identifier' => $auth->identifier['value'],
                                 'filename' => $challenge['token'],
                                 'content' => $keyAuthorization,
-                            ];
+                            );
 
                             break;
                         case LEOrder::CHALLENGE_TYPE_DNS:
                             $DNSDigest = LEFunctions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
 
-                            $authorizations[] = [
+                            $authorizations[] = array(
                                 'type' => LEOrder::CHALLENGE_TYPE_DNS,
                                 'identifier' => $auth->identifier['value'],
                                 'DNSDigest' => $DNSDigest,
-                            ];
+                            );
 
                             break;
                     }
@@ -390,11 +391,11 @@ class LEOrder
         $privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeys['private_key']));
         $details = openssl_pkey_get_details($privateKey);
 
-        $header = [
+        $header = array(
             "e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
             "kty" => "RSA",
             "n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"])
-        ];
+        );
 
         $digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
 
@@ -409,7 +410,7 @@ class LEOrder
                         switch ($type) {
                             case LEOrder::CHALLENGE_TYPE_HTTP:
                                 if ($localcheck == false || LEFunctions::checkHTTPChallenge($identifier, $challenge['token'], $keyAuthorization)) {
-                                    $sign = $this->connector->signRequestKid(['keyAuthorization' => $keyAuthorization], $this->connector->accountURL, $challenge['url']);
+                                    $sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
                                     $post = $this->connector->post($challenge['url'], $sign);
 
                                     if (strpos($post['header'], "200 OK") !== false) {
@@ -441,7 +442,7 @@ class LEOrder
                                 $DNSDigest = LEFunctions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
 
                                 if ($localcheck == false || LEFunctions::checkDNSChallenge($identifier, $DNSDigest)) {
-                                    $sign = $this->connector->signRequestKid(['keyAuthorization' => $keyAuthorization], $this->connector->accountURL, $challenge['url']);
+                                    $sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
                                     $post = $this->connector->post($challenge['url'], $sign);
 
                                     if (strpos($post['header'], "200 OK") !== false) {
@@ -489,7 +490,7 @@ class LEOrder
     {
         foreach ($this->authorizations as $auth) {
             if ($auth->identifier['value'] == $identifier) {
-                $sign = $this->connector->signRequestKid(['status' => 'deactivated'], $this->connector->accountURL, $auth->authorizationURL);
+                $sign = $this->connector->signRequestKid(array('status' => 'deactivated'), $this->connector->accountURL, $auth->authorizationURL);
                 $post = $this->connector->post($auth->authorizationURL, $sign);
 
                 if (strpos($post['header'], "200 OK") !== false) {
@@ -535,9 +536,9 @@ class LEOrder
             $CN = $domains[0];
         }
 
-        $dn = [
+        $dn = array(
             'commonName' => $CN
-        ];
+        );
 
         $san = implode(",", array_map(function ($dns) {
             return "DNS:" . $dns;
@@ -565,7 +566,7 @@ class LEOrder
         );
 
         $privateKey = openssl_pkey_get_private(file_get_contents($this->certificateKeys['private_key']));
-        $csr = openssl_csr_new($dn, $privateKey, ['config' => $tmpConfPath, 'digest_alg' => 'sha256']);
+        $csr = openssl_csr_new($dn, $privateKey, array('config' => $tmpConfPath, 'digest_alg' => 'sha256'));
 
         openssl_csr_export($csr, $csr);
 
@@ -592,7 +593,7 @@ class LEOrder
                 }
 
                 $csr = trim(LEFunctions::Base64UrlSafeEncode(base64_decode($csr)));
-                $sign = $this->connector->signRequestKid(['csr' => $csr], $this->connector->accountURL, $this->finalizeURL);
+                $sign = $this->connector->signRequestKid(array('csr' => $csr), $this->connector->accountURL, $this->finalizeURL);
                 $post = $this->connector->post($this->finalizeURL, $sign);
 
                 if (strpos($post['header'], "200 OK") !== false) {
@@ -745,7 +746,7 @@ class LEOrder
 
                 $certificate = trim(LEFunctions::Base64UrlSafeEncode(base64_decode(trim($matches[1]))));
 
-                $sign = $this->connector->signRequestJWK(['certificate' => $certificate, 'reason' => $reason], $this->connector->revokeCert, $this->certificateKeys['private_key']);
+                $sign = $this->connector->signRequestJWK(array('certificate' => $certificate, 'reason' => $reason), $this->connector->revokeCert, $this->certificateKeys['private_key']);
                 $post = $this->connector->post($this->connector->revokeCert, $sign);
 
                 if (strpos($post['header'], "200 OK") !== false) {

@@ -53,10 +53,10 @@ class LEFunctions
             throw new \RuntimeException("RSA key size must be between 2048 and 4096.");
         }
 
-        $res = openssl_pkey_new([
+        $res = openssl_pkey_new(array(
             "private_key_type" => OPENSSL_KEYTYPE_RSA,
             "private_key_bits" => intval($keySize),
-        ]);
+        ));
 
         if ($res === false) {
             $error = "Could not generate key pair! Check your OpenSSL configuration. OpenSSL Error: ".PHP_EOL;
@@ -110,17 +110,17 @@ class LEFunctions
         }
 
         if ($keySize == 256) {
-            $res = openssl_pkey_new([
+            $res = openssl_pkey_new(array(
                 "private_key_type" => OPENSSL_KEYTYPE_EC,
                 "curve_name" => "prime256v1",
-            ]);
+            ));
         }
 
         if ($keySize == 384) {
-            $res = openssl_pkey_new([
+            $res = openssl_pkey_new(array(
                 "private_key_type" => OPENSSL_KEYTYPE_EC,
                 "curve_name" => "secp384r1",
-            ]);
+            ));
         }
 
         if (!openssl_pkey_export($res, $privateKey)) {
