@@ -129,7 +129,7 @@ class LEAccount
 		$post = $this->connector->post($this->connector->accountURL, $sign);
 		if(strpos($post['header'], "200 OK") !== false)
 		{
-			$this->id = $post['body']['id'];
+			$this->id = isset($post['body']['id']) ? $post['body']['id'] : '';
 			$this->key = $post['body']['key'];
 			$this->contact = $post['body']['contact'];
 			$this->agreement = isset($post['body']['agreement']) ? $post['body']['agreement'] : '';
@@ -169,7 +169,7 @@ class LEAccount
 			{
 				$this->log->info('Account data updated.');
 			}
-			else if($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account data updated.', 'function updateAccount');
+			else if($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Account data updated.', 'function updateAccount');
 			return true;
 		}
 		else
@@ -209,7 +209,7 @@ class LEAccount
 			{
 				$this->log->info('Account keys changed.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account keys changed.', 'function changeAccountKey');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Account keys changed.', 'function changeAccountKey');
 			return true;
 		}
 		else
@@ -234,7 +234,7 @@ class LEAccount
 			{
 				$this->log->info('Account deactivated.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Account deactivated.', 'function deactivateAccount');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Account deactivated.', 'function deactivateAccount');
 		}
 		else
 		{

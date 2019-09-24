@@ -121,7 +121,7 @@ class LEOrder
 						{
 							$this->log->info('Domains do not match order data. Renaming current files and creating new order.');
 						}
-						elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Domains do not match order data. Renaming current files and creating new order.', 'function LEOrder __construct');
+						elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Domains do not match order data. Renaming current files and creating new order.', 'function LEOrder __construct');
 						$this->createOrder($domains, $notBefore, $notAfter, $keyType);
 					}
 					else
@@ -145,7 +145,7 @@ class LEOrder
 					{
 						$this->log->info('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
 					$this->createOrder($domains, $notBefore, $notAfter);
 				}
 			}
@@ -160,7 +160,7 @@ class LEOrder
 				{
 					$this->log->info('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.');
 				}
-				elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
+				elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Order data for \'' . $this->basename . '\' invalid. Deleting order data and creating new order.', 'function LEOrder __construct');
 
 				$this->createOrder($domains, $notBefore, $notAfter);
 			}
@@ -171,7 +171,7 @@ class LEOrder
 			{
 				$this->log->info('No order found for \'' . $this->basename . '\'. Creating new order.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('No order found for \'' . $this->basename . '\'. Creating new order.', 'function LEOrder __construct');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('No order found for \'' . $this->basename . '\'. Creating new order.', 'function LEOrder __construct');
 			$this->createOrder($domains, $notBefore, $notAfter);
 		}
 	}
@@ -229,7 +229,7 @@ class LEOrder
 					{
 						$this->log->info('Created order for \'' . $this->basename . '\'.');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
 				}
 				else
 				{
@@ -269,7 +269,7 @@ class LEOrder
 			{
 				$this->log->info('Cannot update data for order \'' . $this->basename . '\'.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Cannot update data for order \'' . $this->basename . '\'.', 'function updateOrderData');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Cannot update data for order \'' . $this->basename . '\'.', 'function updateOrderData');
 		}
 	}
 
@@ -406,7 +406,7 @@ class LEOrder
 											{
 												$this->log->info('HTTP challenge for \'' . $identifier . '\' valid.');
 											}
-											elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+											elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										}
 										while($auth->status == 'pending')
 										{
@@ -422,7 +422,7 @@ class LEOrder
 									{
 										$this->log->info('HTTP challenge for \'' . $identifier . '\' tested locally, found invalid.');
 									}
-									elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
+									elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('HTTP challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 							case LEOrder::CHALLENGE_TYPE_DNS:
@@ -439,7 +439,7 @@ class LEOrder
 											{
 												$this->log->info('DNS challenge for \'' . $identifier . '\' valid.');
 											}
-											elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
+											elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' valid.', 'function verifyPendingOrderAuthorization');
 										}
 										while($auth->status == 'pending')
 										{
@@ -455,7 +455,7 @@ class LEOrder
 									{
 										$this->log->info('DNS challenge for \'' . $identifier . '\' tested locally, found invalid.');
 									}
-									elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
+									elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('DNS challenge for \'' . $identifier . '\' tested locally, found invalid.', 'function verifyPendingOrderAuthorization');
 								}
 								break;
 						}
@@ -487,7 +487,7 @@ class LEOrder
 					{
 						$this->log->info('Authorization for \'' . $identifier . '\' deactivated.');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Authorization for \'' . $identifier . '\' deactivated.', 'function deactivateOrderAuthorization');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Authorization for \'' . $identifier . '\' deactivated.', 'function deactivateOrderAuthorization');
 					$this->updateAuthorizations();
 					return true;
 				}
@@ -497,7 +497,7 @@ class LEOrder
 		{
 			$this->log->info('No authorization found for \'' . $identifier . '\', cannot deactivate.');
 		}
-		elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('No authorization found for \'' . $identifier . '\', cannot deactivate.', 'function deactivateOrderAuthorization');
+		elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('No authorization found for \'' . $identifier . '\', cannot deactivate.', 'function deactivateOrderAuthorization');
 		return false;
 	}
 
@@ -586,7 +586,7 @@ class LEOrder
 					{
 						$this->log->info('Order for \'' . $this->basename . '\' finalized.');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' finalized.', 'function finalizeOrder');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' finalized.', 'function finalizeOrder');
 					return true;
 				}
 			}
@@ -596,7 +596,7 @@ class LEOrder
 				{
 					$this->log->info('Not all authorizations are valid for \'' . $this->basename . '\'. Cannot finalize order.');
 				}
-				elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Not all authorizations are valid for \'' . $this->basename . '\'. Cannot finalize order.', 'function finalizeOrder');
+				elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Not all authorizations are valid for \'' . $this->basename . '\'. Cannot finalize order.', 'function finalizeOrder');
 			}
 		}
 		else
@@ -605,7 +605,7 @@ class LEOrder
 			{
 				$this->log->info('Order status for \'' . $this->basename . '\' is \'' . $this->status . '\'. Cannot finalize order.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order status for \'' . $this->basename . '\' is \'' . $this->status . '\'. Cannot finalize order.', 'function finalizeOrder');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Order status for \'' . $this->basename . '\' is \'' . $this->status . '\'. Cannot finalize order.', 'function finalizeOrder');
 		}
 		return false;
 	}
@@ -635,7 +635,7 @@ class LEOrder
 			{
 				$this->log->info('Certificate for \'' . $this->basename . '\' being processed. Retrying in 5 seconds...');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' being processed. Retrying in 5 seconds...', 'function getCertificate');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' being processed. Retrying in 5 seconds...', 'function getCertificate');
 			sleep(5);
 			$this->updateOrderData();
 			$polling++;
@@ -662,7 +662,7 @@ class LEOrder
 					{
 						$this->log->info('Certificate for \'' . $this->basename . '\' saved');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' saved', 'function getCertificate');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' saved', 'function getCertificate');
 					return true;
 				}
 				else
@@ -671,7 +671,7 @@ class LEOrder
 					{
 						$this->log->info('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 				}
 			}
 			else
@@ -680,7 +680,7 @@ class LEOrder
 				{
 					$this->log->info('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.');
 				}
-				elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+				elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 			}
 		}
 		else
@@ -689,7 +689,7 @@ class LEOrder
 			{
 				$this->log->info('Order for \'' . $this->basename . '\' not valid. Cannot retrieve certificate.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' not valid. Cannot retrieve certificate.', 'function getCertificate');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' not valid. Cannot retrieve certificate.', 'function getCertificate');
 		}
 		return false;
 	}
@@ -724,7 +724,7 @@ class LEOrder
 					{
 						$this->log->info('Certificate for order \'' . $this->basename . '\' revoked.');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' revoked.', 'function revokeCertificate');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' revoked.', 'function revokeCertificate');
 					return true;
 				}
 				else
@@ -733,7 +733,7 @@ class LEOrder
 					{
 						$this->log->info('Certificate for order \'' . $this->basename . '\' cannot be revoked.');
 					}
-					elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' cannot be revoked.', 'function revokeCertificate');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' cannot be revoked.', 'function revokeCertificate');
 				}
 			}
 			else
@@ -742,7 +742,7 @@ class LEOrder
 				{
 					$this->log->info('Certificate for order \'' . $this->basename . '\' not found. Cannot revoke certificate.');
 				}
-				elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' not found. Cannot revoke certificate.', 'function revokeCertificate');
+				elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Certificate for order \'' . $this->basename . '\' not found. Cannot revoke certificate.', 'function revokeCertificate');
 			}
 		}
 		else
@@ -751,7 +751,7 @@ class LEOrder
 			{
 				$this->log->info('Order for \'' . $this->basename . '\' not valid. Cannot revoke certificate.');
 			}
-			elseif($this->log >= LECLient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' not valid. Cannot revoke certificate.', 'function revokeCertificate');
+			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' not valid. Cannot revoke certificate.', 'function revokeCertificate');
 		}
 		return false;
 	}
