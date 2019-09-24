@@ -87,7 +87,7 @@ class LEConnector
      */
 	private function getNewNonce()
 	{
-		if(strpos($this->head($this->newNonce)['header'], "200 OK") == false) throw new \RuntimeException('No new nonce.');
+		if($this->head($this->newNonce)['status'] !== 200) throw new \RuntimeException('No new nonce.');
 	}
 
     /**
@@ -97,7 +97,7 @@ class LEConnector
      * @param string 	$URL 	The URL or partial URL to make the request to. If it is partial, the baseURL will be prepended.
      * @param object 	$data  	The body to attach to a POST request. Expected as a JSON encoded string.
      *
-     * @return array 	Returns an array with the keys 'request', 'header' and 'body'.
+     * @return array 	Returns an array with the keys 'request', 'header', 'status' and 'body'.
      */
 	private function request($method, $URL, $data = null)
 	{
@@ -132,20 +132,26 @@ class LEConnector
             throw new \RuntimeException('Curl: ' . curl_error($handle));
         }
 
-        $header_size = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
+        $headerSize = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
+        $statusCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 
-        $header = substr($response, 0, $header_size);
-        $body = substr($response, $header_size);
+        $header = substr($response, 0, $headerSize);
+        $body = substr($response, $headerSize);
 		$jsonbody = json_decode($body, true);
-		$jsonresponse = array('request' => $method . ' ' . $requestURL, 'header' => $header, 'body' => $jsonbody === null ? $body : $jsonbody);
+		$jsonresponse = array(
+            'request' => $method . ' ' . $requestURL,
+            'header' => $header,
+            'status' => $statusCode,
+            'body' => $jsonbody === null ? $body : $jsonbody,
+        );
 		if($this->log instanceof \Psr\Log\LoggerInterface) 
 		{
 			$this->log->debug($method . ' response received', $jsonresponse);
 		}
 		elseif($this->log >= LEClient::LOG_DEBUG) LEFunctions::log($jsonresponse);
 
-		if(	(($method == 'POST' OR $method == 'GET') AND strpos($header, "200 OK") === false AND strpos($header, "201 Created") === false) OR
-			($method == 'HEAD' AND strpos($header, "200 OK") === false))
+		if((($method == 'POST' OR $method == 'GET') AND $statusCode !== 200 AND $statusCode !== 201) OR
+			($method == 'HEAD' AND $statusCode !== 200))
 		{
 			throw new \RuntimeException('Invalid response, header: ' . $header);
 		}
@@ -167,7 +173,7 @@ class LEConnector
      *
      * @param string	$url 	The URL or partial URL to make the request to. If it is partial, the baseURL will be prepended.
      *
-     * @return array 	Returns an array with the keys 'request', 'header' and 'body'.
+     * @return array 	Returns an array with the keys 'request', 'header', 'status' and 'body'.
      */
 	public function get($url)
 	{
@@ -180,7 +186,7 @@ class LEConnector
      * @param string 	$url	The URL or partial URL to make the request to. If it is partial, the baseURL will be prepended.
 	 * @param object 	$data	The body to attach to a POST request. Expected as a json string.
      *
-     * @return array 	Returns an array with the keys 'request', 'header' and 'body'.
+     * @return array 	Returns an array with the keys 'request', 'header', 'status' and 'body'.
      */
 	public function post($url, $data = null)
 	{
@@ -192,7 +198,7 @@ class LEConnector
      *
      * @param string 	$url	The URL or partial URL to make the request to. If it is partial, the baseURL will be prepended.
      *
-     * @return array	Returns an array with the keys 'request', 'header' and 'body'.
+     * @return array	Returns an array with the keys 'request', 'header', 'status' and 'body'.
      */
 	public function head($url)
 	{

@@ -61,7 +61,7 @@ class LEAuthorization
 		$this->authorizationURL = $authorizationURL;
 
 		$get = $this->connector->get($this->authorizationURL);
-		if(strpos($get['header'], "200 OK") !== false)
+		if($get['status'] === 200)
 		{
 			$this->identifier = $get['body']['identifier'];
 			$this->status = $get['body']['status'];
@@ -85,7 +85,7 @@ class LEAuthorization
 	public function updateData()
 	{
 		$get = $this->connector->get($this->authorizationURL);
-		if(strpos($get['header'], "200 OK") !== false)
+		if($get['status'] === 200)
 		{
 			$this->identifier = $get['body']['identifier'];
 			$this->status = $get['body']['status'];
