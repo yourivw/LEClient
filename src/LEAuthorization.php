@@ -62,7 +62,7 @@ class LEAuthorization
 
         $get = $this->connector->get($this->authorizationURL);
 
-        if (strpos($get['header'], "200 OK") !== false) {
+        if ($get['status'] === 200) {
             $this->identifier = $get['body']['identifier'];
             $this->status = $get['body']['status'];
             $this->expires = $get['body']['expires'];
@@ -83,7 +83,7 @@ class LEAuthorization
     {
         $get = $this->connector->get($this->authorizationURL);
 
-        if (strpos($get['header'], "200 OK") !== false) {
+        if ($get['status'] === 200) {
             $this->identifier = $get['body']['identifier'];
             $this->status = $get['body']['status'];
             $this->expires = $get['body']['expires'];

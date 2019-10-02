@@ -104,7 +104,7 @@ class LEOrder
             if (filter_var($this->orderURL, FILTER_VALIDATE_URL)) {
                 $get = $this->connector->get($this->orderURL);
 
-                if (strpos($get['header'], '200 OK') !== false && $get['body']['status'] != 'invalid') {
+                if ($get['status'] === 200 && $get['body']['status'] != 'invalid') {
                     $orderdomains = array_map(function ($ident) {
                         return $ident['value'];
                     }, $get['body']['identifiers']);
@@ -203,7 +203,7 @@ class LEOrder
             $sign = $this->connector->signRequestKid($payload, $this->connector->accountURL, $this->connector->newOrder);
             $post = $this->connector->post($this->connector->newOrder, $sign);
 
-            if (strpos($post['header'], "201 Created") !== false) {
+            if ($post['status'] === 201) {
                 if (preg_match('~Location: (\S+)~i', $post['header'], $matches)) {
                     $this->orderURL = trim($matches[1]);
 
@@ -255,7 +255,7 @@ class LEOrder
     {
         $get = $this->connector->get($this->orderURL);
 
-        if (strpos($get['header'], "200 OK") !== false) {
+        if ($get['status'] === 200) {
             $this->status = $get['body']['status'];
             $this->expires = $get['body']['expires'];
             $this->identifiers = $get['body']['identifiers'];
@@ -413,7 +413,7 @@ class LEOrder
                                     $sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
                                     $post = $this->connector->post($challenge['url'], $sign);
 
-                                    if (strpos($post['header'], "200 OK") !== false) {
+                                    if ($post['status'] === 200) {
                                         if ($localcheck) {
                                             if ($this->log instanceof \Psr\Log\LoggerInterface) {
                                                 $this->log->info('HTTP challenge for \'' . $identifier . '\' valid.');
@@ -445,7 +445,7 @@ class LEOrder
                                     $sign = $this->connector->signRequestKid(array('keyAuthorization' => $keyAuthorization), $this->connector->accountURL, $challenge['url']);
                                     $post = $this->connector->post($challenge['url'], $sign);
 
-                                    if (strpos($post['header'], "200 OK") !== false) {
+                                    if ($post['status'] === 200) {
                                         if ($localcheck) {
                                             if ($this->log instanceof \Psr\Log\LoggerInterface) {
                                                 $this->log->info('DNS challenge for \'' . $identifier . '\' valid.');
@@ -493,7 +493,7 @@ class LEOrder
                 $sign = $this->connector->signRequestKid(array('status' => 'deactivated'), $this->connector->accountURL, $auth->authorizationURL);
                 $post = $this->connector->post($auth->authorizationURL, $sign);
 
-                if (strpos($post['header'], "200 OK") !== false) {
+                if ($post['status'] === 200) {
                     if ($this->log instanceof \Psr\Log\LoggerInterface) {
                         $this->log->info('Authorization for \'' . $identifier . '\' deactivated.');
                     } elseif ($this->log >= LEClient::LOG_STATUS) {
@@ -596,7 +596,7 @@ class LEOrder
                 $sign = $this->connector->signRequestKid(array('csr' => $csr), $this->connector->accountURL, $this->finalizeURL);
                 $post = $this->connector->post($this->finalizeURL, $sign);
 
-                if (strpos($post['header'], "200 OK") !== false) {
+                if ($post['status'] === 200) {
                     $this->status = $post['body']['status'];
                     $this->expires = $post['body']['expires'];
                     $this->identifiers = $post['body']['identifiers'];
@@ -672,7 +672,7 @@ class LEOrder
         if ($this->status == 'valid' && !empty($this->certificateURL)) {
             $get = $this->connector->get($this->certificateURL);
 
-            if (strpos($get['header'], "200 OK") !== false) {
+            if ($get['status'] === 200) {
                 if (preg_match_all('~(-----BEGIN\sCERTIFICATE-----[\s\S]+?-----END\sCERTIFICATE-----)~i', $get['body'], $matches)) {
                     if (isset($this->certificateKeys['certificate'])) {
                         file_put_contents($this->certificateKeys['certificate'], $matches[0][0]);
@@ -749,7 +749,7 @@ class LEOrder
                 $sign = $this->connector->signRequestJWK(array('certificate' => $certificate, 'reason' => $reason), $this->connector->revokeCert, $this->certificateKeys['private_key']);
                 $post = $this->connector->post($this->connector->revokeCert, $sign);
 
-                if (strpos($post['header'], "200 OK") !== false) {
+                if ($post['status'] === 200) {
                     if ($this->log instanceof \Psr\Log\LoggerInterface) {
                         $this->log->info('Certificate for order \'' . $this->basename . '\' revoked.');
                     } elseif ($this->log >= LEClient::LOG_STATUS) {

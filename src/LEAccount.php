@@ -100,7 +100,7 @@ class LEAccount
         $sign = $this->connector->signRequestJWK(array('contact' => $contact, 'termsOfServiceAgreed' => true), $this->connector->newAccount);
         $post = $this->connector->post($this->connector->newAccount, $sign);
 
-        if (strpos($post['header'], "201 Created") !== false) {
+        if ($post['status'] === 201) {
             if (preg_match('~Location: (\S+)~i', $post['header'], $matches)) {
                 return trim($matches[1]);
             }
@@ -119,7 +119,7 @@ class LEAccount
         $sign = $this->connector->signRequestJWK(array('onlyReturnExisting' => true), $this->connector->newAccount);
         $post = $this->connector->post($this->connector->newAccount, $sign);
 
-        if (strpos($post['header'], "200 OK") !== false) {
+        if ($post['status'] === 200) {
             if (preg_match('~Location: (\S+)~i', $post['header'], $matches)) {
                 return trim($matches[1]);
             }
@@ -136,7 +136,7 @@ class LEAccount
         $sign = $this->connector->signRequestKid(array('' => ''), $this->connector->accountURL, $this->connector->accountURL);
         $post = $this->connector->post($this->connector->accountURL, $sign);
 
-        if (strpos($post['header'], "200 OK") !== false) {
+        if ($post['status'] === 200) {
             $this->id = isset($post['body']['id']) ? $post['body']['id'] : '';
             $this->key = $post['body']['key'];
             $this->contact = $post['body']['contact'];
@@ -144,9 +144,11 @@ class LEAccount
             $this->initialIp = $post['body']['initialIp'];
             $this->createdAt = $post['body']['createdAt'];
             $this->status = $post['body']['status'];
-        } else {
-            throw new \RuntimeException('Account data cannot be found.');
+
+            return;
         }
+
+        throw new \RuntimeException('Account data cannot be found.');
     }
 
     /**
@@ -165,7 +167,7 @@ class LEAccount
         $sign = $this->connector->signRequestKid(array('contact' => $contact), $this->connector->accountURL, $this->connector->accountURL);
         $post = $this->connector->post($this->connector->accountURL, $sign);
 
-        if (strpos($post['header'], "200 OK") !== false) {
+        if ($post['status'] === 200) {
             $this->id = $post['body']['id'];
             $this->key = $post['body']['key'];
             $this->contact = $post['body']['contact'];
@@ -208,7 +210,7 @@ class LEAccount
         $sign = $this->connector->signRequestKid($outerPayload, $this->connector->accountURL, $this->connector->keyChange);
         $post = $this->connector->post($this->connector->keyChange, $sign);
 
-        if (strpos($post['header'], "200 OK") !== false) {
+        if ($post['status'] === 200) {
             unlink($this->accountKeys['private_key']);
             unlink($this->accountKeys['public_key']);
             rename($this->accountKeys['private_key'].'.new', $this->accountKeys['private_key']);
@@ -238,7 +240,7 @@ class LEAccount
         $sign = $this->connector->signRequestKid(array('status' => 'deactivated'), $this->connector->accountURL, $this->connector->accountURL);
         $post = $this->connector->post($this->connector->accountURL, $sign);
 
-        if (strpos($post['header'], "200 OK") !== false) {
+        if ($post['status'] === 200) {
             $this->connector->accountDeactivated = true;
 
             if ($this->log instanceof \Psr\Log\LoggerInterface) {
