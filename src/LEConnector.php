@@ -144,16 +144,31 @@ class LEConnector
             'status' => $statusCode,
             'body' => $jsonbody === null ? $body : $jsonbody,
         );
-		if($this->log instanceof \Psr\Log\LoggerInterface) 
+		if($this->log instanceof \Psr\Log\LoggerInterface)
 		{
 			$this->log->debug($method . ' response received', $jsonresponse);
 		}
 		elseif($this->log >= LEClient::LOG_DEBUG) LEFunctions::log($jsonresponse);
 
-		if((($method == 'POST' OR $method == 'GET') AND $statusCode !== 200 AND $statusCode !== 201) OR
-			($method == 'HEAD' AND $statusCode !== 200))
+		if((($method === 'POST' OR $method === 'GET') AND $statusCode !== 200 AND $statusCode !== 201) OR
+			($method === 'HEAD' AND $statusCode !== 200))
 		{
-			throw new \RuntimeException('Invalid response, header: ' . $header);
+		    $context = array(
+                'method' => $method,
+                'status' => $statusCode,
+                'header' => $header,
+                'body' => $body
+            );
+		    if ($this->log instanceof \Psr\Log\LoggerInterface) {
+		        $this->log->error('Invalid response', $context);
+            } elseif ($this->log >= LEClient::LOG_STATUS) {
+                LEFunctions::log($context);
+            }
+
+			throw new \RuntimeException(
+			    'Invalid response ' . PHP_EOL . 'header: ' . $header . PHP_EOL . 'body: ' . $body,
+                $statusCode
+            );
 		}
 
 		if(preg_match('~Replay\-Nonce: (\S+)~i', $header, $matches))
