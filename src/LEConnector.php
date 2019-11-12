@@ -152,24 +152,24 @@ class LEConnector
 
 		if((($method === 'POST' OR $method === 'GET') AND $statusCode !== 200 AND $statusCode !== 201) OR
 			($method === 'HEAD' AND $statusCode !== 200))
-		{
-		    $context = array(
+        {
+            $context = array(
                 'method' => $method,
                 'status' => $statusCode,
                 'header' => $header,
                 'body' => $body
             );
-		    if ($this->log instanceof \Psr\Log\LoggerInterface) {
-		        $this->log->error('Invalid response', $context);
+            if ($this->log instanceof \Psr\Log\LoggerInterface) {
+                $this->log->error('Invalid response', $context);
             } elseif ($this->log >= LEClient::LOG_STATUS) {
                 LEFunctions::log($context);
             }
 
-			throw new \RuntimeException(
-			    'Invalid response ' . PHP_EOL . 'header: ' . $header . PHP_EOL . 'body: ' . $body,
+            throw new \RuntimeException(
+                'Invalid response ' . PHP_EOL . 'header: ' . $header . PHP_EOL . 'body: ' . $body,
                 $statusCode
             );
-		}
+        }
 
 		if(preg_match('~Replay\-Nonce: (\S+)~i', $header, $matches))
 		{
