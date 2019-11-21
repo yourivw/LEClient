@@ -642,7 +642,7 @@ class LEOrder
      */
     public function isFinalized()
     {
-        return ($this->status == 'processing' || $this->status == 'valid');
+        return ($this->status === 'processing' || $this->status === 'valid' || $this->status === 'ready');
     }
 
     /**
@@ -669,7 +669,7 @@ class LEOrder
             $polling++;
         }
 
-        if ($this->status == 'valid' && !empty($this->certificateURL)) {
+        if (($this->status === 'valid' || $this->status === 'ready') && !empty($this->certificateURL)) {
             $get = $this->connector->get($this->certificateURL);
 
             if ($get['status'] === 200) {
@@ -730,7 +730,7 @@ class LEOrder
      */
     public function revokeCertificate($reason = 0)
     {
-        if ($this->status == 'valid') {
+        if ($this->status === 'valid' || $this->status === 'ready') {
             if (isset($this->certificateKeys['certificate'])) {
                 $certFile = $this->certificateKeys['certificate'];
             } elseif (isset($this->certificateKeys['fullchain_certificate'])) {
