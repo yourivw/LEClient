@@ -106,9 +106,14 @@ class LEOrder
 			$this->orderURL = file_get_contents($this->certificateKeys['order']);
 			if (filter_var($this->orderURL, FILTER_VALIDATE_URL))
 			{
-				$get = $this->connector->get($this->orderURL);
-				if($get['status'] === 200 && $get['body']['status'] != "invalid")
+				try 
 				{
+					$get = $this->connector->get($this->orderURL);
+					if($get['body']['status'] == "invalid")
+					{
+						throw new \RuntimeException('Order status is invalid');
+					}
+					
 					$orderdomains = array_map(function($ident) { return $ident['value']; }, $get['body']['identifiers']);
 					$diff = array_merge(array_diff($orderdomains, $domains), array_diff($domains, $orderdomains));
 					if(!empty($diff))
@@ -135,7 +140,7 @@ class LEOrder
 						$this->updateAuthorizations();
 					}
 				}
-				else
+				catch (\Exception $e)
 				{
 					foreach ($this->certificateKeys as $file)
 					{
