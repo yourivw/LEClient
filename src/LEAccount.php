@@ -2,6 +2,8 @@
 
 namespace LEClient;
 
+use LEClient\Exceptions\LEAccountException;
+
 /**
  * LetsEncrypt Account class, containing the functions and data associated with a LetsEncrypt account.
  *
@@ -79,7 +81,7 @@ class LEAccount
 		{
 			$this->connector->accountURL = $this->getLEAccount();
 		}
-		if($this->connector->accountURL == false) throw new \RuntimeException('Account not found or deactivated.');
+		if($this->connector->accountURL == false) throw LEAccountException::AccountNotFoundException();
 		$this->getLEAccountData();
 	}
 
@@ -139,7 +141,7 @@ class LEAccount
 		}
 		else
 		{
-			throw new \RuntimeException('Account data cannot be found.');
+			throw LEAccountException::AccountNotFoundException();
 		}
 	}
 
@@ -158,7 +160,7 @@ class LEAccount
 		$post = $this->connector->post($this->connector->accountURL, $sign);
 		if($post['status'] === 200)
 		{
-			$this->id = $post['body']['id'];
+			$this->id = isset($post['body']['id']) ? $post['body']['id'] : '';
 			$this->key = $post['body']['key'];
 			$this->contact = $post['body']['contact'];
 			$this->agreement = isset($post['body']['agreement']) ? $post['body']['agreement'] : '';
@@ -235,6 +237,8 @@ class LEAccount
 				$this->log->info('Account deactivated.');
 			}
 			elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Account deactivated.', 'function deactivateAccount');
+			
+			return true;
 		}
 		else
 		{

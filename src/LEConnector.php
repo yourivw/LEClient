@@ -2,6 +2,8 @@
 
 namespace LEClient;
 
+use LEClient\Exceptions\LEConnectorException;
+
 /**
  * LetsEncrypt Connector class, containing the functions necessary to sign with JSON Web Key and Key ID, and perform GET, POST and HEAD requests.
  *
@@ -87,7 +89,7 @@ class LEConnector
      */
 	private function getNewNonce()
 	{
-		if($this->head($this->newNonce)['status'] !== 200) throw new \RuntimeException('No new nonce.');
+		if($this->head($this->newNonce)['status'] !== 200) throw LEConnectorException::NoNewNonceException();
 	}
 
     /**
@@ -101,7 +103,7 @@ class LEConnector
      */
 	private function request($method, $URL, $data = null)
 	{
-		if($this->accountDeactivated) throw new \RuntimeException('The account was deactivated. No further requests can be made.');
+		if($this->accountDeactivated) throw LEConnectorException::AccountDeactivatedException();
 
 		$headers = array('Accept: application/json', 'Content-Type: application/jose+json');
 		$requestURL = preg_match('~^http~', $URL) ? $URL : $this->baseURL . $URL;
@@ -123,13 +125,13 @@ class LEConnector
 				curl_setopt($handle, CURLOPT_NOBODY, true);
 				break;
 			default:
-				throw new \RuntimeException('HTTP request ' . $method . ' not supported.');
+				throw LEConnectorException::MethodNotSupportedException($method);
 				break;
         }
         $response = curl_exec($handle);
 
         if(curl_errno($handle)) {
-            throw new \RuntimeException('Curl: ' . curl_error($handle));
+            throw LEConnectorException::CurlErrorException(curl_error($handle));
         }
 
         $headerSize = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
@@ -149,13 +151,7 @@ class LEConnector
 			$this->log->debug($method . ' response received', $jsonresponse);
 		}
 		elseif($this->log >= LEClient::LOG_DEBUG) LEFunctions::log($jsonresponse);
-
-		if((($method == 'POST' OR $method == 'GET') AND $statusCode !== 200 AND $statusCode !== 201) OR
-			($method == 'HEAD' AND $statusCode !== 200))
-		{
-			throw new \RuntimeException('Invalid response, header: ' . $header);
-		}
-
+		
 		if(preg_match('~Replay\-Nonce: (\S+)~i', $header, $matches))
 		{
 			$this->nonce = trim($matches[1]);
@@ -163,6 +159,12 @@ class LEConnector
 		else
 		{
 			if($method == 'POST') $this->getNewNonce(); // Not expecting a new nonce with GET and HEAD requests.
+		}
+
+		if((($method == 'POST' OR $method == 'GET') AND $statusCode !== 200 AND $statusCode !== 201) OR
+			($method == 'HEAD' AND $statusCode !== 200))
+		{
+			throw LEConnectorException::InvalidResponseException($jsonresponse);
 		}
 
         return $jsonresponse;

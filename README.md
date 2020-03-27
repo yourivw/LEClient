@@ -3,11 +3,7 @@ PHP LetsEncrypt client library for ACME v2. The aim of this client is to make an
 
 ## Current version
 
-The current version is 1.1.11
-
-The example codes below are to be updated.
-
-This client was developed with the use of the LetsEncrypt staging server for version 2. While version 2 is still being developed and implemented by LetsEncrypt at this moment, the project might be subject to change.
+The current version is 1.2.0
 
 ## Getting Started
 
@@ -17,7 +13,9 @@ Also have a look at the [LetsEncrypt documentation](https://letsencrypt.org/docs
 
 ### Prerequisites
 
-The minimum required PHP version is 5.2.0. Version 7.1.0 is required for EC keys. The function generating EC keys will throw an exception when trying to generate EC keys with a PHP version below 7.1.0. Version 1.0.0 will be kept available, but will not be maintained.
+The minimum required PHP version is 5.2.0. Version 7.1.0 is required for EC keys. The function generating EC keys will throw an exception when trying to generate EC keys with a PHP version below 7.1.0.
+
+Version 1.0.0 will be kept available, but will not be maintained.
 
 This client also depends on cURL and OpenSSL.
 
@@ -28,9 +26,7 @@ Using composer:
 composer require yourivw/leclient
 ```
 
-Although it is possible to add this to your own autoloader, it's not recommended as you'll have no control of the dependencies. If you haven't used composer before, I strongly recommend you check it out at [https://getcomposer.org](https://getcomposer.org).
-
-It is advisable to cut the script some slack regarding execution time by setting a higher maximum time. There are several ways to do so. One it to add the following to the top of the page:
+It is advisable to cut the script some slack regarding execution time by setting a higher maximum time. There are several ways to do so. One is to add the following to the top of the page:
 ```php
 ini_set('max_execution_time', 120); // Maximum execution time in seconds.
 ```
@@ -47,11 +43,13 @@ Initiating the client:
 ```php
 use LEClient\LEClient;
 
-$client = new LEClient($email);                               				// Initiating a basic LEClient with an array of string e-mail address(es).
-$client = new LEClient($email, true);                         				// Initiating a LECLient and use the LetsEncrypt staging URL.
-$client = new LEClient($email, true, $logger);   					// Initiating a LEClient and use a PSR-3 logger (\Psr\Log\LoggerInterface).
-$client = new LEClient($email, true, LEClient::LOG_STATUS);   				// Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
-$client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/');   			// Initiating a LEClient and select custom certificate keys directory (string or array)
+$client = new LEClient($email);														// Initiating a basic LEClient with an array of string e-mail address(es).
+$client = new LEClient($email, LEClient::LE_STAGING);								// Initiating a LECLient and use the LetsEncrypt staging URL.
+$client = new LEClient($email, LEClient::LE_PRODUCTION);							// Initiating a LECLient and use the LetsEncrypt production URL.
+$client = new LEClient($email, true);												// Initiating a LECLient and use the LetsEncrypt staging URL.
+$client = new LEClient($email, true, $logger);										// Initiating a LEClient and use a PSR-3 logger (\Psr\Log\LoggerInterface).
+$client = new LEClient($email, true, LEClient::LOG_STATUS);							// Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
+$client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/');				// Initiating a LEClient and select custom certificate keys directory (string or array)
 $client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/', '__account/');	// Initiating a LEClient and select custom account keys directory (string or array)
 ```
 The client will automatically create a new account if there isn't one found. It will forward the e-mail address(es) supplied during initiation, as shown above.
@@ -78,6 +76,8 @@ $order = $client->getOrCreateOrder($basename, $domains, $keyType, $notBefore, $n
 
 Using the order functions:
 ```php
+use LEClient\LEOrder;
+
 $valid      = $order->allAuthorizationsValid();                             // Check whether all authorizations in this order instance are valid.
 $pending    = $order->getPendingAuthorizations($type);                      // Get an array of pending authorizations. Performing authorizations is described further on. Type is LEOrder::CHALLENGE_TYPE_HTTP or LEOrder::CHALLENGE_TYPE_DNS.
 $verify     = $order->verifyPendingOrderAuthorization($identifier, $type);  // Verify a pending order. The identifier is a string domain name. Type is LEOrder::CHALLENGE_TYPE_HTTP or LEOrder::CHALLENGE_TYPE_DNS.
@@ -176,7 +176,7 @@ The DNS record name also depends on your provider, therefore getPendingAuthoriza
 
 For both HTTP and DNS authorizations, a full example is available in the project's main code directory. The HTTP authorization example is contained in one file. As described above, the DNS authorization example is split into two parts, to allow for the DNS record to update in the meantime. While the TTL of the record might be low, it can sometimes take some time for your provider to update your DNS records after an amendment.
 
-If you can't get these examples, or the client library to work, try and have a look at the LetsEncrypt documentation mentioned above as well.
+If you can't get these examples, or the client library to work, try and have a look at the LetsEncrypt documentation mentioned above as well. In order for the example code to work, make sure to replace all 'example.org' information with your own information. The examples will fail when you run them using the preset example data.
 
 ## Security
 

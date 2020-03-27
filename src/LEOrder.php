@@ -2,6 +2,8 @@
 
 namespace LEClient;
 
+use LEClient\Exceptions\LEOrderException;
+
 /**
  * LetsEncrypt Order class, containing the functions and data associated with a specific LetsEncrypt order.
  *
@@ -96,7 +98,12 @@ class LEOrder
 				$this->keyType = $keyTypeParts[0][1];
 				$this->keySize = intval($keyTypeParts[0][2]);
 			}
-			else throw new \RuntimeException('Key type \'' . $keyType . '\' not supported.');
+			else throw LEOrderException::InvalidKeyTypeException($keyType);
+		}
+		
+		if(preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notBefore) == false OR preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notAfter) == false)
+		{
+			throw LEOrderException::InvalidArgumentException('notBefore and notAfter fields must be empty or be a string similar to 0000-00-00T00:00:00Z');
 		}
 
 		$this->certificateKeys = $certificateKeys;
@@ -104,17 +111,18 @@ class LEOrder
 		if(file_exists($this->certificateKeys['private_key']) AND file_exists($this->certificateKeys['order']) AND file_exists($this->certificateKeys['public_key']))
 		{
 			$this->orderURL = file_get_contents($this->certificateKeys['order']);
-			if (filter_var($this->orderURL, FILTER_VALIDATE_URL))
+			if (filter_var($this->orderURL, FILTER_VALIDATE_URL) !== false)
 			{
 				try 
 				{
-					$get = $this->connector->get($this->orderURL);
-					if($get['body']['status'] == "invalid")
+					$sign = $this->connector->signRequestKid('', $this->connector->accountURL, $this->orderURL);
+					$post = $this->connector->post($this->orderURL, $sign);
+					if($post['body']['status'] == "invalid")
 					{
-						throw new \RuntimeException('Order status is invalid');
+						throw LEOrderException::InvalidOrderStatusException();
 					}
 					
-					$orderdomains = array_map(function($ident) { return $ident['value']; }, $get['body']['identifiers']);
+					$orderdomains = array_map(function($ident) { return $ident['value']; }, $post['body']['identifiers']);
 					$diff = array_merge(array_diff($orderdomains, $domains), array_diff($domains, $orderdomains));
 					if(!empty($diff))
 					{
@@ -131,12 +139,12 @@ class LEOrder
 					}
 					else
 					{
-						$this->status = $get['body']['status'];
-						$this->expires = $get['body']['expires'];
-						$this->identifiers = $get['body']['identifiers'];
-						$this->authorizationURLs = $get['body']['authorizations'];
-						$this->finalizeURL = $get['body']['finalize'];
-						if(array_key_exists('certificate', $get['body'])) $this->certificateURL = $get['body']['certificate'];
+						$this->status = $post['body']['status'];
+						$this->expires = $post['body']['expires'];
+						$this->identifiers = $post['body']['identifiers'];
+						$this->authorizationURLs = $post['body']['authorizations'];
+						$this->finalizeURL = $post['body']['finalize'];
+						if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
 						$this->updateAuthorizations();
 					}
 				}
@@ -190,65 +198,57 @@ class LEOrder
      */
 	private function createOrder($domains, $notBefore, $notAfter)
 	{
-		if(preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notBefore) AND preg_match('~(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z|^$)~', $notAfter))
+		$dns = array();
+		foreach($domains as $domain)
 		{
+			if(preg_match_all('~(\*\.)~', $domain) > 1) throw LEOrderException::InvalidArgumentException('Cannot create orders with multiple wildcards in one domain.');
+			$dns[] = array('type' => 'dns', 'value' => $domain);
+		}
+		$payload = array("identifiers" => $dns, 'notBefore' => $notBefore, 'notAfter' => $notAfter);
+		$sign = $this->connector->signRequestKid($payload, $this->connector->accountURL, $this->connector->newOrder);
+		$post = $this->connector->post($this->connector->newOrder, $sign);
 
-			$dns = array();
-			foreach($domains as $domain)
+		if($post['status'] === 201)
+		{
+			if(preg_match('~Location: (\S+)~i', $post['header'], $matches))
 			{
-				if(preg_match_all('~(\*\.)~', $domain) > 1) throw new \RuntimeException('Cannot create orders with multiple wildcards in one domain.');
-				$dns[] = array('type' => 'dns', 'value' => $domain);
-			}
-			$payload = array("identifiers" => $dns, 'notBefore' => $notBefore, 'notAfter' => $notAfter);
-			$sign = $this->connector->signRequestKid($payload, $this->connector->accountURL, $this->connector->newOrder);
-			$post = $this->connector->post($this->connector->newOrder, $sign);
-
-			if($post['status'] === 201)
-			{
-				if(preg_match('~Location: (\S+)~i', $post['header'], $matches))
+				$this->orderURL = trim($matches[1]);
+				file_put_contents($this->certificateKeys['order'], $this->orderURL);
+				if ($this->keyType == "rsa")
 				{
-					$this->orderURL = trim($matches[1]);
-					file_put_contents($this->certificateKeys['order'], $this->orderURL);
-					if ($this->keyType == "rsa")
-					{
-						LEFunctions::RSAgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key'], $this->keySize);
-					}
-					elseif ($this->keyType == "ec")
-					{
-						LEFunctions::ECgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key'], $this->keySize);
-					}
-					else
-					{
-						throw new \RuntimeException('Key type \'' . $this->keyType . '\' not supported.');
-					}
-
-					$this->status = $post['body']['status'];
-					$this->expires = $post['body']['expires'];
-					$this->identifiers = $post['body']['identifiers'];
-					$this->authorizationURLs = $post['body']['authorizations'];
-					$this->finalizeURL = $post['body']['finalize'];
-					if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
-					$this->updateAuthorizations();
-
-					if($this->log instanceof \Psr\Log\LoggerInterface) 
-					{
-						$this->log->info('Created order for \'' . $this->basename . '\'.');
-					}
-					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
+					LEFunctions::RSAgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key'], $this->keySize);
+				}
+				elseif ($this->keyType == "ec")
+				{
+					LEFunctions::ECgenerateKeys(null, $this->certificateKeys['private_key'], $this->certificateKeys['public_key'], $this->keySize);
 				}
 				else
 				{
-					throw new \RuntimeException('New-order returned invalid response.');
+					throw LEOrderException::InvalidKeyTypeException($this->keyType);
 				}
+
+				$this->status = $post['body']['status'];
+				$this->expires = $post['body']['expires'];
+				$this->identifiers = $post['body']['identifiers'];
+				$this->authorizationURLs = $post['body']['authorizations'];
+				$this->finalizeURL = $post['body']['finalize'];
+				if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
+				$this->updateAuthorizations();
+
+				if($this->log instanceof \Psr\Log\LoggerInterface) 
+				{
+					$this->log->info('Created order for \'' . $this->basename . '\'.');
+				}
+				elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Created order for \'' . $this->basename . '\'.', 'function createOrder (function LEOrder __construct)');
 			}
 			else
 			{
-				throw new \RuntimeException('Creating new order failed.');
+				throw LEOrderException::CreateFailedException('New-order returned invalid response.');
 			}
 		}
 		else
 		{
-			throw new \RuntimeException('notBefore and notAfter fields must be empty or be a string similar to 0000-00-00T00:00:00Z');
+			throw LEOrderException::CreateFailedException('Creating new order failed.');
 		}
 	}
 
@@ -257,15 +257,16 @@ class LEOrder
      */
 	private function updateOrderData()
 	{
-		$get = $this->connector->get($this->orderURL);
-		if($get['status'] === 200)
+		$sign = $this->connector->signRequestKid('', $this->connector->accountURL, $this->orderURL);
+		$post = $this->connector->post($this->orderURL, $sign);
+		if($post['status'] === 200)
 		{
-			$this->status = $get['body']['status'];
-			$this->expires = $get['body']['expires'];
-			$this->identifiers = $get['body']['identifiers'];
-			$this->authorizationURLs = $get['body']['authorizations'];
-			$this->finalizeURL = $get['body']['finalize'];
-			if(array_key_exists('certificate', $get['body'])) $this->certificateURL = $get['body']['certificate'];
+			$this->status = $post['body']['status'];
+			$this->expires = $post['body']['expires'];
+			$this->identifiers = $post['body']['identifiers'];
+			$this->authorizationURLs = $post['body']['authorizations'];
+			$this->finalizeURL = $post['body']['finalize'];
+			if(array_key_exists('certificate', $post['body'])) $this->certificateURL = $post['body']['certificate'];
 			$this->updateAuthorizations();
 		}
 		else
@@ -647,10 +648,11 @@ class LEOrder
 		}
 		if($this->status == 'valid' && !empty($this->certificateURL))
 		{
-			$get = $this->connector->get($this->certificateURL);
-			if($get['status'] === 200)
+			$sign = $this->connector->signRequestKid('', $this->connector->accountURL, $this->certificateURL);
+			$post = $this->connector->post($this->certificateURL, $sign);
+			if($post['status'] === 200)
 			{
-				if(preg_match_all('~(-----BEGIN\sCERTIFICATE-----[\s\S]+?-----END\sCERTIFICATE-----)~i', $get['body'], $matches))
+				if(preg_match_all('~(-----BEGIN\sCERTIFICATE-----[\s\S]+?-----END\sCERTIFICATE-----)~i', $post['body'], $matches))
 				{
 					if (isset($this->certificateKeys['certificate'])) file_put_contents($this->certificateKeys['certificate'],  $matches[0][0]);
 
@@ -713,7 +715,7 @@ class LEOrder
 		{
 			if (isset($this->certificateKeys['certificate'])) $certFile = $this->certificateKeys['certificate'];
 			elseif (isset($this->certificateKeys['fullchain_certificate']))  $certFile = $this->certificateKeys['fullchain_certificate'];
-			else throw new \RuntimeException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] required');
+			else throw LEOrderException::InvalidConfigurationException('certificateKeys[certificate] or certificateKeys[fullchain_certificate] required');
 
 			if(file_exists($certFile) && file_exists($this->certificateKeys['private_key']))
 			{

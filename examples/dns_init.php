@@ -16,7 +16,7 @@ $basename = 'example.org';
 $domains = array('example.org', 'test.example.org');
 
 // Initiating the client instance. In this case using the staging server (argument 2) and outputting all status and debug information (argument 3).
-$client = new LEClient($email, true, LECLient::LOG_STATUS);
+$client = new LEClient($email, LEClient::LE_STAGING, LECLient::LOG_STATUS);
 // Initiating the order instance. The keys and certificate will be stored in /example.org/ (argument 1) and the domains in the array (argument 2) will be on the certificate.
 $order = $client->getOrCreateOrder($basename, $domains);
 // Check whether there are any authorizations pending. If that is the case, try to verify the pending authorizations.

@@ -2,6 +2,8 @@
 
 namespace LEClient;
 
+use LEClient\Exceptions\LEAuthorizationException;
+
 /**
  * LetsEncrypt Authorization class, getting LetsEncrypt authorization data associated with a LetsEncrypt Order instance.
  *
@@ -60,13 +62,14 @@ class LEAuthorization
 		$this->log = $log;
 		$this->authorizationURL = $authorizationURL;
 
-		$get = $this->connector->get($this->authorizationURL);
-		if($get['status'] === 200)
+		$sign = $this->connector->signRequestKid('', $this->connector->accountURL, $this->authorizationURL);
+		$post = $this->connector->post($this->authorizationURL, $sign);
+		if($post['status'] === 200)
 		{
-			$this->identifier = $get['body']['identifier'];
-			$this->status = $get['body']['status'];
-			$this->expires = $get['body']['expires'];
-			$this->challenges = $get['body']['challenges'];
+			$this->identifier = $post['body']['identifier'];
+			$this->status = $post['body']['status'];
+			$this->expires = $post['body']['expires'];
+			$this->challenges = $post['body']['challenges'];
 		}
 		else
 		{
@@ -84,13 +87,14 @@ class LEAuthorization
 
 	public function updateData()
 	{
-		$get = $this->connector->get($this->authorizationURL);
-		if($get['status'] === 200)
+		$sign = $this->connector->signRequestKid('', $this->connector->accountURL, $this->authorizationURL);
+		$post = $this->connector->post($this->authorizationURL, $sign);
+		if($post['status'] === 200)
 		{
-			$this->identifier = $get['body']['identifier'];
-			$this->status = $get['body']['status'];
-			$this->expires = $get['body']['expires'];
-			$this->challenges = $get['body']['challenges'];
+			$this->identifier = $post['body']['identifier'];
+			$this->status = $post['body']['status'];
+			$this->expires = $post['body']['expires'];
+			$this->challenges = $post['body']['challenges'];
 		}
 		else
 		{
@@ -116,6 +120,6 @@ class LEAuthorization
 		{
 			if($challenge['type'] == $type) return $challenge;
 		}
-		throw new \RuntimeException('No challenge found for type \'' . $type . '\' and identifier \'' . $this->identifier['value'] . '\'.');
+		throw LEAuthorizationException::NoChallengeFoundException($type, $this->identifier['value']);
 	}
 }
