@@ -43,13 +43,13 @@ Initiating the client:
 ```php
 use LEClient\LEClient;
 
-$client = new LEClient($email);														// Initiating a basic LEClient with an array of string e-mail address(es).
-$client = new LEClient($email, LEClient::LE_STAGING);								// Initiating a LECLient and use the LetsEncrypt staging URL.
-$client = new LEClient($email, LEClient::LE_PRODUCTION);							// Initiating a LECLient and use the LetsEncrypt production URL.
-$client = new LEClient($email, true);												// Initiating a LECLient and use the LetsEncrypt staging URL.
-$client = new LEClient($email, true, $logger);										// Initiating a LEClient and use a PSR-3 logger (\Psr\Log\LoggerInterface).
-$client = new LEClient($email, true, LEClient::LOG_STATUS);							// Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
-$client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/');				// Initiating a LEClient and select custom certificate keys directory (string or array)
+$client = new LEClient($email);								// Initiating a basic LEClient with an array of string e-mail address(es).
+$client = new LEClient($email, LEClient::LE_STAGING);					// Initiating a LECLient and use the LetsEncrypt staging URL.
+$client = new LEClient($email, LEClient::LE_PRODUCTION);				// Initiating a LECLient and use the LetsEncrypt production URL.
+$client = new LEClient($email, true);							// Initiating a LECLient and use the LetsEncrypt staging URL.
+$client = new LEClient($email, true, $logger);						// Initiating a LEClient and use a PSR-3 logger (\Psr\Log\LoggerInterface).
+$client = new LEClient($email, true, LEClient::LOG_STATUS);				// Initiating a LEClient and log status messages (LOG_DEBUG for full debugging).
+$client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/');			// Initiating a LEClient and select custom certificate keys directory (string or array)
 $client = new LEClient($email, true, LEClient::LOG_STATUS, 'keys/', '__account/');	// Initiating a LEClient and select custom account keys directory (string or array)
 ```
 The client will automatically create a new account if there isn't one found. It will forward the e-mail address(es) supplied during initiation, as shown above.
@@ -95,14 +95,14 @@ Supportive functions:
 ```php
 use LEClient\LEFunctions;
 
-LEFunctions::RSAGenerateKeys($directory, $privateKeyFile, $publicKeyFile);  // Generate a RSA keypair in the given directory. Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
-LEFunctions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);   // Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
-LEFunctions::Base64UrlSafeEncode($input);                                   // Encode the input string as a base64 URL safe string.
-LEFunctions::Base64UrlSafeDecode($input);                                   // Decode a base64 URL safe encoded string.
-LEFunctions::log($data, $function);                                         // Print the data. The function variable is optional and defaults to the calling function's name.
-LEFunctions::checkHTTPChallenge($domain, $token, $keyAuthorization);        // Checks whether the HTTP challenge is valid. Performing authorizations is described further on.
-LEFunctions::checkDNSChallenge($domain, $DNSDigest);                        // Checks whether the DNS challenge is valid. Performing authorizations is described further on.
-LEFunctions::createhtaccess($directory);									// Created a simple .htaccess file in the directory supplied, denying all visitors.
+LEFunctions::RSAGenerateKeys($directory, $privateKeyFile, $publicKeyFile);	// Generate a RSA keypair in the given directory. Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
+LEFunctions::ECGenerateKeys($directory, $privateKeyFile, $publicKeyFile);	// Generate a EC keypair in the given directory (PHP 7.1+ required). Variables privateKeyFile and publicKeyFile are optional and have default values private.pem and public.pem.
+LEFunctions::Base64UrlSafeEncode($input);					// Encode the input string as a base64 URL safe string.
+LEFunctions::Base64UrlSafeDecode($input);					// Decode a base64 URL safe encoded string.
+LEFunctions::log($data, $function);						// Print the data. The function variable is optional and defaults to the calling function's name.
+LEFunctions::checkHTTPChallenge($domain, $token, $keyAuthorization);		// Checks whether the HTTP challenge is valid. Performing authorizations is described further on.
+LEFunctions::checkDNSChallenge($domain, $DNSDigest);				// Checks whether the DNS challenge is valid. Performing authorizations is described further on.
+LEFunctions::createhtaccess($directory);					// Created a simple .htaccess file in the directory supplied, denying all visitors.
 ```
 
 ## Authorization challenges
