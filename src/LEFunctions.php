@@ -2,6 +2,7 @@
 
 namespace LEClient;
 
+use Exception;
 use LEClient\Exceptions\LEFunctionsException;
 
 /**
