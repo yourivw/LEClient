@@ -45,7 +45,7 @@ class LEException extends \RuntimeException
 		$this->responsedata = $responsedata;
 	}
 	
-	public function getResponseData(): ?array
+	public function getResponseData()
 	{
 		return $this->responsedata;
 	}

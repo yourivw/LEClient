@@ -570,7 +570,8 @@ class LEOrder
      */
 	public function finalizeOrder($csr = '')
 	{
-		if($this->status == 'pending' || $this->status == 'ready')
+		$this->updateOrderData();
+		if($this->status == 'ready')
 		{
 			if($this->allAuthorizationsValid())
 			{
@@ -623,7 +624,7 @@ class LEOrder
      */
 	public function isFinalized()
 	{
-		return ($this->status == 'processing' || $this->status == 'valid' || $this->status == 'ready');
+		return ($this->status == 'processing' || $this->status == 'valid');
 	}
 
     /**
@@ -646,48 +647,59 @@ class LEOrder
 			$this->updateOrderData();
 			$polling++;
 		}
-		if(($this->status == 'valid' || $this->status == 'ready') && !empty($this->certificateURL))
+		if($this->status == 'valid')
 		{
-			$sign = $this->connector->signRequestKid('', $this->connector->accountURL, $this->certificateURL);
-			$post = $this->connector->post($this->certificateURL, $sign);
-			if($post['status'] === 200)
+			if(!empty($this->certificateURL))
 			{
-				if(preg_match_all('~(-----BEGIN\sCERTIFICATE-----[\s\S]+?-----END\sCERTIFICATE-----)~i', $post['body'], $matches))
+				$sign = $this->connector->signRequestKid('', $this->connector->accountURL, $this->certificateURL);
+				$post = $this->connector->post($this->certificateURL, $sign);
+				if($post['status'] === 200)
 				{
-					if (isset($this->certificateKeys['certificate'])) file_put_contents($this->certificateKeys['certificate'],  $matches[0][0]);
+					if(preg_match_all('~(-----BEGIN\sCERTIFICATE-----[\s\S]+?-----END\sCERTIFICATE-----)~i', $post['body'], $matches))
+					{
+						if (isset($this->certificateKeys['certificate'])) file_put_contents($this->certificateKeys['certificate'],  $matches[0][0]);
 
-					if(count($matches[0]) > 1 && isset($this->certificateKeys['fullchain_certificate']))
-					{
-						$fullchain = $matches[0][0]."\n";
-						for($i=1;$i<count($matches[0]);$i++)
+						if(count($matches[0]) > 1 && isset($this->certificateKeys['fullchain_certificate']))
 						{
-							$fullchain .= $matches[0][$i]."\n";
+							$fullchain = $matches[0][0]."\n";
+							for($i=1;$i<count($matches[0]);$i++)
+							{
+								$fullchain .= $matches[0][$i]."\n";
+							}
+							file_put_contents(trim($this->certificateKeys['fullchain_certificate']), $fullchain);
 						}
-						file_put_contents(trim($this->certificateKeys['fullchain_certificate']), $fullchain);
+						if($this->log instanceof \Psr\Log\LoggerInterface) 
+						{
+							$this->log->info('Certificate for \'' . $this->basename . '\' saved');
+						}
+						elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' saved', 'function getCertificate');
+						return true;
 					}
-					if($this->log instanceof \Psr\Log\LoggerInterface) 
+					else
 					{
-						$this->log->info('Certificate for \'' . $this->basename . '\' saved');
+						if($this->log instanceof \Psr\Log\LoggerInterface) 
+						{
+							$this->log->info('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.');
+						}
+						elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 					}
-					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Certificate for \'' . $this->basename . '\' saved', 'function getCertificate');
-					return true;
 				}
 				else
 				{
 					if($this->log instanceof \Psr\Log\LoggerInterface) 
 					{
-						$this->log->info('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.');
+						$this->log->info('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.');
 					}
-					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Received invalid certificate for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+					elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
 				}
 			}
 			else
 			{
 				if($this->log instanceof \Psr\Log\LoggerInterface) 
 				{
-					$this->log->info('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.');
+					$this->log->info('Order for \'' . $this->basename . '\' not valid. Cannot find certificate URL.');
 				}
-				elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Invalid response for certificate request for \'' . $this->basename . '\'. Cannot save certificate.', 'function getCertificate');
+				elseif($this->log >= LEClient::LOG_STATUS) LEFunctions::log('Order for \'' . $this->basename . '\' not valid. Cannot find certificate URL.', 'function getCertificate');
 			}
 		}
 		else
