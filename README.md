@@ -1,4 +1,11 @@
 # LEClient
+
+[![Latest Stable Version](https://poser.pugx.org/yourivw/leclient/v/stable)](https://packagist.org/packages/yourivw/leclient)
+[![Total Downloads](https://poser.pugx.org/yourivw/leclient/downloads)](https://packagist.org/packages/yourivw/leclient)
+[![License](https://poser.pugx.org/yourivw/leclient/license)](https://packagist.org/packages/yourivw/leclient)
+
+&nbsp;
+
 PHP LetsEncrypt client library for ACME v2. The aim of this client is to make an easy-to-use and integrated solution to create a LetsEncrypt-issued SSL/TLS certificate with PHP. The user has to have access to the web server or DNS management to be able to verify the domain is accessible/owned by the user.
 
 ## Current version
