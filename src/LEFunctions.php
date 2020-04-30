@@ -223,7 +223,20 @@ class LEFunctions
      */
 	public static function checkDNSChallenge($domain, $DNSDigest)
 	{
-		$requestURL = 'https://dns.google.com/resolve?name=_acme-challenge.' . $domain . '&type=TXT';
+		$hostname = '_acme-challenge.' . $domain;
+
+		// first try to check using local DNS
+		$dnsRecords = dns_get_record($hostname,  DNS_TXT);
+		if ($dnsRecords !== false) {
+			foreach ($dnsRecords as $r) {
+				if ($r['txt'] === $DNSDigest) {
+					return true;
+				}
+			}
+		}
+
+		// then try to check using Google DNS API
+		$requestURL = 'https://dns.google.com/resolve?name=.' . $hostname . '&type=TXT';
 		$handle = curl_init();
         curl_setopt($handle, CURLOPT_URL, $requestURL);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
