@@ -46,7 +46,7 @@ class LEConnector
 
 	public $keyChange;
 	public $newAccount;
-    public $newNonce;
+    	public $newNonce;
 	public $newOrder;
 	public $revokeCert;
 
@@ -54,7 +54,8 @@ class LEConnector
 	public $accountDeactivated = false;
 
 	private $log;
-
+	
+	private $sourceIp = false;
     /**
      * Initiates the LetsEncrypt Connector class.
      *
@@ -62,13 +63,14 @@ class LEConnector
      * @param string	$baseURL 		The LetsEncrypt server URL to make requests to.
      * @param array		$accountKeys 	Array containing location of account keys files.
      */
-	public function __construct($log, $baseURL, $accountKeys)
+	public function __construct($log, $baseURL, $accountKeys, $sourceIp = false)
 	{
 		$this->baseURL = $baseURL;
 		$this->accountKeys = $accountKeys;
 		$this->log = $log;
 		$this->getLEDirectory();
 		$this->getNewNonce();
+		$this->sourceIp = false;
 	}
 
     /**
@@ -112,7 +114,9 @@ class LEConnector
         curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_HEADER, true);
-
+	if($this->sourceIp !== false) {
+		curl_setopt($curlh, CURLOPT_INTERFACE, $this->sourceIp);
+	}
         switch ($method) {
             case 'GET':
                 break;
@@ -141,11 +145,11 @@ class LEConnector
         $body = substr($response, $headerSize);
 		$jsonbody = json_decode($body, true);
 		$jsonresponse = array(
-            'request' => $method . ' ' . $requestURL,
-            'header' => $header,
-            'status' => $statusCode,
-            'body' => $jsonbody === null ? $body : $jsonbody,
-        );
+           		'request' => $method . ' ' . $requestURL,
+            		'header' => $header,
+            		'status' => $statusCode,
+            		'body' => $jsonbody === null ? $body : $jsonbody,
+        	);
 		if($this->log instanceof \Psr\Log\LoggerInterface) 
 		{
 			$this->log->debug($method . ' response received', $jsonresponse);
