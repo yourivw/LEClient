@@ -115,7 +115,7 @@ class LEConnector
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_HEADER, true);
 	if($this->sourceIp !== false) {
-		curl_setopt($curlh, CURLOPT_INTERFACE, $this->sourceIp);
+		curl_setopt($handle, CURLOPT_INTERFACE, $this->sourceIp);
 	}
         switch ($method) {
             case 'GET':
