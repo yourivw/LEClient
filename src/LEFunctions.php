@@ -208,6 +208,7 @@ class LEFunctions
         curl_setopt($handle, CURLOPT_URL, $requestURL);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
         $response = trim(curl_exec($handle));
 
 		return (!empty($response) && $response == $keyAuthorization);
