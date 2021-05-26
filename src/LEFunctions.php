@@ -235,7 +235,7 @@ class LEFunctions
 			{
 				if($answer->type === 16)
 				{
-					if($answer->data === ('"' . $DNSDigest . '"')) return true;
+					if($answer->data === $DNSDigest) return true;
 				}
 			}
 		}
