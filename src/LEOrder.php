@@ -2,6 +2,7 @@
 
 namespace LEClient;
 
+use LEClient\Exceptions\LEAuthorizationException;
 use LEClient\Exceptions\LEOrderException;
 
 /**
@@ -343,7 +344,11 @@ class LEOrder
 		{
 			if($auth->status == 'pending')
 			{
-				$challenge = $auth->getChallenge($type);
+				try {
+					$challenge = $auth->getChallenge($type);
+				} catch (LEAuthorizationException $e) {
+					continue;
+				}
 				if($challenge['status'] == 'pending')
 				{
 					$keyAuthorization = $challenge['token'] . '.' . $digest;
