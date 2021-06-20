@@ -4,11 +4,15 @@
     "description": "PHP LetsEncrypt client library for ACME v2",
     "license": "MIT",
     "require": {
-        "php": ">=5.2"
+        "php": ">=5.2",
+        "ext-openssl": "*"
     },
     "autoload": {
         "psr-4": {
             "LEClient\\": "src/"
         }
+    },
+    "require-dev": {
+        "psr/log": "^1.1"
     }
 }
