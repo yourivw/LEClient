@@ -315,17 +315,19 @@ class LEOrder
     }
 
     /**
-     * Get all pending LetsEncrypt Authorization instances and return the necessary data for verification. The data in the return object depends on the $type.
+     * Get the requested LetsEncrypt Authorization instances and returns the data. The data in the return object depends on the $type.
      *
      * @param int	$type	The type of verification to get. Supporting http-01 and dns-01. Supporting LEOrder::CHALLENGE_TYPE_HTTP and LEOrder::CHALLENGE_TYPE_DNS. Throws
      *						a Runtime Exception when requesting an unknown $type. Keep in mind a wildcard domain authorization only accepts LEOrder::CHALLENGE_TYPE_DNS.
-     *
+     * @param string $authStatus The status of the authorization.
+     * @param string $challengeStatus The status of the challenge.
+     * 
      * @return object	Returns an array with verification data if successful, false if not pending LetsEncrypt Authorization instances were found. The return array always
      *					contains 'type' and 'identifier'. For LEOrder::CHALLENGE_TYPE_HTTP, the array contains 'filename' and 'content' for necessary the authorization file.
      *					For LEOrder::CHALLENGE_TYPE_DNS, the array contains 'DNSDigest', which is the content for the necessary DNS TXT entry.
      */
 
-	public function getPendingAuthorizations($type)
+	public function getAuthorizations($type, $authStatus, $challengeStatus)
 	{
 		$authorizations = array();
 
@@ -342,14 +344,14 @@ class LEOrder
 
 		foreach($this->authorizations as $auth)
 		{
-			if($auth->status == 'pending')
+			if($auth->status == $authStatus)
 			{
 				try {
 					$challenge = $auth->getChallenge($type);
 				} catch (LEAuthorizationException $e) {
 					continue;
 				}
-				if($challenge['status'] == 'pending')
+				if($challenge['status'] == $challengeStatus)
 				{
 					$keyAuthorization = $challenge['token'] . '.' . $digest;
 					switch(strtolower($type))
@@ -368,6 +370,36 @@ class LEOrder
 
 		return count($authorizations) > 0 ? $authorizations : false;
 	}
+
+    /**
+     * Get all pending LetsEncrypt Authorization instances and return the necessary data for verification. The data in the return object depends on the $type.
+     *
+     * @param int	$type	The type of verification to get. Supporting http-01 and dns-01. Supporting LEOrder::CHALLENGE_TYPE_HTTP and LEOrder::CHALLENGE_TYPE_DNS. Throws
+     *						a Runtime Exception when requesting an unknown $type. Keep in mind a wildcard domain authorization only accepts LEOrder::CHALLENGE_TYPE_DNS.
+     *
+     * @return object	Returns an array with verification data if successful, false if not pending LetsEncrypt Authorization instances were found. The return array always
+     *					contains 'type' and 'identifier'. For LEOrder::CHALLENGE_TYPE_HTTP, the array contains 'filename' and 'content' for necessary the authorization file.
+     *					For LEOrder::CHALLENGE_TYPE_DNS, the array contains 'DNSDigest', which is the content for the necessary DNS TXT entry.
+     */
+    public function getPendingAuthorizations($type)
+    {
+        return $this->getAuthorizations($type, 'pending', 'pending');
+    }
+
+    /**
+      * Get all valid LetsEncrypt Authorization instances and returns the data. The data in the return object depends on the $type.
+      *
+      * @param int	$type	The type of verification to get. Supporting http-01 and dns-01. Supporting LEOrder::CHALLENGE_TYPE_HTTP and LEOrder::CHALLENGE_TYPE_DNS. Throws
+      *						a Runtime Exception when requesting an unknown $type. Keep in mind a wildcard domain authorization only accepts LEOrder::CHALLENGE_TYPE_DNS.
+      *
+      * @return object	Returns an array with verification data if successful, false if not pending LetsEncrypt Authorization instances were found. The return array always
+      *					contains 'type' and 'identifier'. For LEOrder::CHALLENGE_TYPE_HTTP, the array contains 'filename' and 'content' for necessary the authorization file.
+      *					For LEOrder::CHALLENGE_TYPE_DNS, the array contains 'DNSDigest', which is the content for the necessary DNS TXT entry.
+      */
+    public function getValidAuthorizations($type)
+    {
+        return $this->getAuthorizations($type, 'valid', 'valid');
+    }
 
     /**
      * Sends a verification request for a given $identifier and $type. The function itself checks whether the verification is valid before making the request.
