@@ -92,7 +92,7 @@ $deactivate = $order->deactivateOrderAuthorization($identifier);            // D
 $finalize   = $order->finalizeOrder();                                      // Finalize the order and generate a Certificate Signing Request automatically.
 $finalize   = $order->finalizeOrder($csr);                                  // Finalize the order with a custom Certificate Signing Request string.
 $finalized  = $order->isFinalized();                                        // Check whether the order is finalized.
-$cert       = $order->getCertificate();                                     // Retrieves the certificate and stores it in the keys directory, under the specific order (basename).
+$cert       = $order->getCertificate();                                     // Retrieves the certificate and stores it in the keys directory.
 $revoke     = $order->revokeCertificate();                                  // Revoke the certificate without a reason.
 $revoke     = $order->revokeCertificate($reason);                           // Revoke the certificate with a reason integer as found in section 5.3.1 of RFC5280.
 ```
@@ -110,6 +110,53 @@ LEFunctions::log($data, $function);						// Print the data. The function variabl
 LEFunctions::checkHTTPChallenge($domain, $token, $keyAuthorization);		// Checks whether the HTTP challenge is valid. Performing authorizations is described further on.
 LEFunctions::checkDNSChallenge($domain, $DNSDigest);				// Checks whether the DNS challenge is valid. Performing authorizations is described further on.
 LEFunctions::createhtaccess($directory);					// Created a simple .htaccess file in the directory supplied, denying all visitors.
+```
+
+## Filesystem Structure
+
+LEClient stores account keys, certificate keys, certificates and order data in the filesystem. By default, the folder structure used will look like this, relative to your working directory:
+
+    keys/                   Top-level LEClient folder
+      public.pem            Your certificate’s public key
+      private.pem           Your certificate’s private key
+      order                 A file used to store the order URL
+      fullchain.crt         The full-chain certificate
+      certificate.crt       The certificate
+      __account/            An internal folder for LEClient to store your account keys
+        public.pem          Your ACME account’s public key
+        private.pem         Your ACME account’s private key
+        .htaccess           An automatically-generated .htaccess to prevent accidental exposure
+
+You can customise these locations by passing values to the `$certificateKeys` and `$accountKeys` construction parameters when creating an `LEClient`.
+
+Passing strings will change the location and name of the top-level LEClient folder, and the name of the Account Key folder. Note that when passing strings, the account key folder will always be a subfolder of the top-level folder, meaning that:
+
+```php
+$client = new LEClient('email@example.com', LEClient::PRODUCTION, LEClient::LOG_OFF, 'path/to/my/key/folder/', 'my_account_folder');
+```
+
+will result in the following structure:
+
+    path/to/my/key/folder/
+      public.pem
+      …
+      my_account_folder/
+        public.pem
+        …
+
+If you want to have more control over the exact locations the various files are stored in, you can instead pass arrays to the `$certificateKeys` and `$accountKeys` parameters. If you pass an array to one, you must pass arrays to both.
+
+```php
+$client = new LEClient('email@example.com', LEClient::PRODUCTION, LEClient::LOG_OFF, [
+  'public_key' => 'path/to/public/key.pem',          // Required
+  'private_key' => 'path/to/private/key.pem',        // Required
+  'order' => 'path/to/order.txt',                    // Required
+  'certificate' => 'path/to/certificate.crt',        // One or both of certificate and fullchain_certificate
+  'fullchain_certificate' => 'path/to/fullchain.crt' // must be provided.
+], [
+  'public_key' => 'path/to/account/public/key.pem',  // Required
+  'private_key' => 'path/to/account/private/key.pem' // Required
+]);
 ```
 
 ## Authorization challenges
