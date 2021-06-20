@@ -2,6 +2,7 @@
 
 namespace LEClient;
 
+use LEClient\Exceptions\LEAuthorizationException;
 use LEClient\Exceptions\LEOrderException;
 
 /**
@@ -324,45 +325,49 @@ class LEOrder
      *					For LEOrder::CHALLENGE_TYPE_DNS, the array contains 'DNSDigest', which is the content for the necessary DNS TXT entry.
      */
 
-    public function getPendingAuthorizations($type)
-    {
-        $authorizations = array();
+	public function getPendingAuthorizations($type)
+	{
+		$authorizations = array();
 
-        $privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeys['private_key']));
-        $details = openssl_pkey_get_details($privateKey);
+		$privateKey = openssl_pkey_get_private(file_get_contents($this->connector->accountKeys['private_key']));
+		$details = openssl_pkey_get_details($privateKey);
 
-        $header = array(
-            "e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
-            "kty" => "RSA",
-            "n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"])
+		$header = array(
+			"e" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["e"]),
+			"kty" => "RSA",
+			"n" => LEFunctions::Base64UrlSafeEncode($details["rsa"]["n"])
 
-        );
-        $digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
+		);
+		$digest = LEFunctions::Base64UrlSafeEncode(hash('sha256', json_encode($header), true));
 
-        foreach($this->authorizations as $auth)
-        {
-            if($auth->status == 'pending')
-            {
-                $challenge = $auth->getChallenge($type);
-                if($challenge['status'] == 'pending')
-                {
-                    $keyAuthorization = $challenge['token'] . '.' . $digest;
-                    switch(strtolower($type))
-                    {
-                        case LEOrder::CHALLENGE_TYPE_HTTP:
-                            $authorizations[] = array('type' => LEOrder::CHALLENGE_TYPE_HTTP, 'identifier' => $auth->identifier['value'], 'filename' => $challenge['token'], 'content' => $keyAuthorization);
-                            break;
-                        case LEOrder::CHALLENGE_TYPE_DNS:
-                            $DNSDigest = LEFunctions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
-                            $authorizations[] = array('type' => LEOrder::CHALLENGE_TYPE_DNS, 'identifier' => $auth->identifier['value'], 'DNSDigest' => $DNSDigest);
-                            break;
-                    }
-                }
-            }
-        }
+		foreach($this->authorizations as $auth)
+		{
+			if($auth->status == 'pending')
+			{
+				try {
+					$challenge = $auth->getChallenge($type);
+				} catch (LEAuthorizationException $e) {
+					continue;
+				}
+				if($challenge['status'] == 'pending')
+				{
+					$keyAuthorization = $challenge['token'] . '.' . $digest;
+					switch(strtolower($type))
+					{
+						case LEOrder::CHALLENGE_TYPE_HTTP:
+							$authorizations[] = array('type' => LEOrder::CHALLENGE_TYPE_HTTP, 'identifier' => $auth->identifier['value'], 'filename' => $challenge['token'], 'content' => $keyAuthorization);
+							break;
+						case LEOrder::CHALLENGE_TYPE_DNS:
+							$DNSDigest = LEFunctions::Base64UrlSafeEncode(hash('sha256', $keyAuthorization, true));
+							$authorizations[] = array('type' => LEOrder::CHALLENGE_TYPE_DNS, 'identifier' => $auth->identifier['value'], 'DNSDigest' => $DNSDigest);
+							break;
+					}
+				}
+			}
+		}
 
-        return count($authorizations) > 0 ? $authorizations : false;
-    }
+		return count($authorizations) > 0 ? $authorizations : false;
+	}
 
     /**
      * Sends a verification request for a given $identifier and $type. The function itself checks whether the verification is valid before making the request.
