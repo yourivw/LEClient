@@ -47,7 +47,9 @@ class LEClient
 
 	private $connector;
 	private $account;
-
+	
+	private $sourceIp = false;
+	
 	private $log;
 
 	const LOG_OFF = 0;		// Logs no messages or faults, except Runtime Exceptions.
@@ -65,10 +67,10 @@ class LEClient
      * @param string 	$accountKeys 		The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
      * @param array 	$accountKeys 		Optional array containing location of account private and public keys. Required paths are private_key, public_key.
      */
-	public function __construct($email, $acmeURL = LEClient::LE_PRODUCTION, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/')
+	public function __construct($email, $acmeURL = LEClient::LE_PRODUCTION, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/', $sourceIp = false)
 	{
 		$this->log = $log;
-
+		$this->sourceIp = false;
 		if (is_bool($acmeURL))
 		{
 			if ($acmeURL === true) $this->baseURL = LEClient::LE_STAGING;
@@ -152,7 +154,7 @@ class LEClient
 			throw LEClientException::InvalidArgumentException('accountKeys must be string or array.');
 		}
 
-		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeys);
+		$this->connector = new LEConnector($this->log, $this->baseURL, $this->accountKeys, $this->sourceIp);
 		$this->account = new LEAccount($this->connector, $this->log, $email, $this->accountKeys);
 		
 		if($this->log instanceof \Psr\Log\LoggerInterface) 
