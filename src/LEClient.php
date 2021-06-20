@@ -66,11 +66,12 @@ class LEClient
      * @param array 	$certificateKeys 	Optional array containing location of all certificate files. Required paths are public_key, private_key, order and certificate/fullchain_certificate (you can use both or only one of them)
      * @param string 	$accountKeys 		The directory in which the account keys are stored. Is a subdir inside $certificateKeys. Defaults to '__account/'.(optional)
      * @param array 	$accountKeys 		Optional array containing location of account private and public keys. Required paths are private_key, public_key.
+	 * @param string    $sourceIp           Optional source IP address.
      */
 	public function __construct($email, $acmeURL = LEClient::LE_PRODUCTION, $log = LEClient::LOG_OFF, $certificateKeys = 'keys/', $accountKeys = '__account/', $sourceIp = false)
 	{
 		$this->log = $log;
-		$this->sourceIp = false;
+		$this->sourceIp = $sourceIp;
 		if (is_bool($acmeURL))
 		{
 			if ($acmeURL === true) $this->baseURL = LEClient::LE_STAGING;

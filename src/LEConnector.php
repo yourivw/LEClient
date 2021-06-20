@@ -46,7 +46,7 @@ class LEConnector
 
 	public $keyChange;
 	public $newAccount;
-    	public $newNonce;
+    public $newNonce;
 	public $newOrder;
 	public $revokeCert;
 
@@ -56,12 +56,14 @@ class LEConnector
 	private $log;
 	
 	private $sourceIp = false;
+
     /**
      * Initiates the LetsEncrypt Connector class.
      *
      * @param int 		$log			The level of logging. Defaults to no logging. LOG_OFF, LOG_STATUS, LOG_DEBUG accepted.
      * @param string	$baseURL 		The LetsEncrypt server URL to make requests to.
      * @param array		$accountKeys 	Array containing location of account keys files.
+     * @param string    $sourceIp       Optional source IP address.
      */
 	public function __construct($log, $baseURL, $accountKeys, $sourceIp = false)
 	{
@@ -70,7 +72,7 @@ class LEConnector
 		$this->log = $log;
 		$this->getLEDirectory();
 		$this->getNewNonce();
-		$this->sourceIp = false;
+		$this->sourceIp = $sourceIp;
 	}
 
     /**
@@ -114,9 +116,10 @@ class LEConnector
         curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_HEADER, true);
-	if($this->sourceIp !== false) {
-		curl_setopt($handle, CURLOPT_INTERFACE, $this->sourceIp);
-	}
+        if($this->sourceIp !== false) {
+            curl_setopt($handle, CURLOPT_INTERFACE, $this->sourceIp);
+        }
+        
         switch ($method) {
             case 'GET':
                 break;
