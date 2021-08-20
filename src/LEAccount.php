@@ -133,7 +133,7 @@ class LEAccount
 		{
 			$this->id = isset($post['body']['id']) ? $post['body']['id'] : '';
 			$this->key = $post['body']['key'];
-			$this->contact = $post['body']['contact'];
+			$this->contact = isset($post['body']['contact']) ? $post['body']['contact'] : '';
 			$this->agreement = isset($post['body']['agreement']) ? $post['body']['agreement'] : '';
 			$this->initialIp = $post['body']['initialIp'];
 			$this->createdAt = $post['body']['createdAt'];
