@@ -84,7 +84,10 @@ class LEFunctions
 		file_put_contents($privateKeyFile, $privateKey);
 		file_put_contents($publicKeyFile, $details['key']);
 
-		openssl_pkey_free($res);
+		if (version_compare(PHP_VERSION, '8.0', '<')) {
+			openssl_pkey_free($res);
+		}
+
 	}
 
     /**
@@ -129,7 +132,9 @@ class LEFunctions
 		file_put_contents($privateKeyFile, $privateKey);
 		file_put_contents($publicKeyFile, $details['key']);
 
-		openssl_pkey_free($res);
+		if (version_compare(PHP_VERSION, '8.0', '<')) {
+			openssl_pkey_free($res);
+		}
 	}
 
 
@@ -208,7 +213,7 @@ class LEFunctions
         curl_setopt($handle, CURLOPT_URL, $requestURL);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);	
+		curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
         $response = trim(curl_exec($handle));
 
 		return (!empty($response) && $response == $keyAuthorization);
@@ -232,7 +237,7 @@ class LEFunctions
         $response = json_decode(trim(curl_exec($handle)));
 		if($response->Status === 0 && isset($response->Answer))
 		{
-			foreach($response->Answer as $answer) 
+			foreach($response->Answer as $answer)
 			{
 				if($answer->type === 16)
 				{
