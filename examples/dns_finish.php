@@ -29,7 +29,7 @@ if(!$order->allAuthorizationsValid())
 	{
 		foreach($pending as $challenge)
 		{
-			// Let LetsEncrypt verify this challenge, which should have been fulfilled in exampleDNSStart.php.
+			// Let LetsEncrypt verify this challenge, which should have been fulfilled in dns_init.php.
 			$order->verifyPendingOrderAuthorization($challenge['identifier'], LEOrder::CHALLENGE_TYPE_DNS);
 		}
 	}
