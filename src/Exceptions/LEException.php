@@ -39,7 +39,7 @@ class LEException extends \RuntimeException
 {
 	protected $responsedata;
 	
-	public function __construct(string $message = "", int $code = 0, Throwable $previous = NULL, array $responsedata = NULL)
+	public function __construct($message = "", $code = 0, $previous = NULL, $responsedata = NULL)
 	{
 		parent::__construct($message, $code, $previous);
 		$this->responsedata = $responsedata;
