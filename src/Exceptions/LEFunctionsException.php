@@ -37,9 +37,9 @@ namespace LEClient\Exceptions;
  */
 class LEFunctionsException extends LEException
 {
-	public const INVALIDARGUMENTEXCEPTION 	= 0x51;
-	public const GENERATEKEYPAIREXCEPTION 	= 0x52;
-	public const PHPVERSIONEXCEPTION 		= 0x53;
+	const INVALIDARGUMENTEXCEPTION 	= 0x51;
+	const GENERATEKEYPAIREXCEPTION 	= 0x52;
+	const PHPVERSIONEXCEPTION 		= 0x53;
 	
 	public static function InvalidArgumentException(string $message)
 	{

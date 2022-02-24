@@ -37,11 +37,11 @@ namespace LEClient\Exceptions;
  */
 class LEConnectorException extends LEException
 {
-	public const NONEWNONCEEXCEPTION 			= 0x11;
-	public const ACCOUNTDEACTIVATEDEXCEPTION 	= 0x12;
-	public const METHODNOTSUPPORTEDEXCEPTION 	= 0x13;
-	public const CURLERROREXCEPTION 			= 0x14;
-	public const INVALIDRESPONSEEXCEPTION 		= 0x15;
+	const NONEWNONCEEXCEPTION 			= 0x11;
+	const ACCOUNTDEACTIVATEDEXCEPTION 	= 0x12;
+	const METHODNOTSUPPORTEDEXCEPTION 	= 0x13;
+	const CURLERROREXCEPTION 			= 0x14;
+	const INVALIDRESPONSEEXCEPTION 		= 0x15;
 	
 	public static function NoNewNonceException()
 	{

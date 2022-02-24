@@ -37,8 +37,8 @@ namespace LEClient\Exceptions;
  */
 class LEClientException extends LEException
 {
-	public const INVALIDARGUMENTEXCEPTION 	= 0x01;
-	public const INVALIDDIRECTORYEXCEPTION 	= 0x02;
+	const INVALIDARGUMENTEXCEPTION 	= 0x01;
+	const INVALIDDIRECTORYEXCEPTION 	= 0x02;
 	
 	public static function InvalidArgumentException(string $message)
 	{

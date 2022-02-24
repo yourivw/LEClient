@@ -37,7 +37,7 @@ namespace LEClient\Exceptions;
  */
 class LEAuthorizationException extends LEException
 {
-	public const NOCHALLENGEFOUNDEEXCEPTION	= 0x41;
+	const NOCHALLENGEFOUNDEEXCEPTION	= 0x41;
 	
 	public static function NoChallengeFoundException($type, $identifier)
 	{

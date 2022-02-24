@@ -37,7 +37,7 @@ namespace LEClient\Exceptions;
  */
 class LEAccountException extends LEException
 {
-	public const ACCOUNTNOTFOUNDEEXCEPTION 	= 0x21;
+	const ACCOUNTNOTFOUNDEEXCEPTION 	= 0x21;
 	
 	public static function AccountNotFoundException()
 	{
