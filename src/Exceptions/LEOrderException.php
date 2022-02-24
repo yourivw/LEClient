@@ -37,11 +37,11 @@ namespace LEClient\Exceptions;
  */
 class LEOrderException extends LEException
 {
-	public const INVALIDKEYTYPEEXCEPTION 		= 0x31;
-	public const INVALIDORDERSTATUSEXCEPTION 	= 0x32;
-	public const CREATEFAILEDEXCEPTION 			= 0x33;
-	public const INVALIDARGUMENTEXCEPTION		= 0x34;
-	public const INVALIDCONFIGURATIONEXCEPTION	= 0x35;	
+	const INVALIDKEYTYPEEXCEPTION 		= 0x31;
+	const INVALIDORDERSTATUSEXCEPTION 	= 0x32;
+	const CREATEFAILEDEXCEPTION 			= 0x33;
+	const INVALIDARGUMENTEXCEPTION		= 0x34;
+	const INVALIDCONFIGURATIONEXCEPTION	= 0x35;
 	
 	public static function InvalidKeyTypeException(string $keyType)
 	{

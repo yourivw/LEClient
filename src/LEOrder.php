@@ -844,10 +844,10 @@ class LEOrder
         {
             if(preg_match_all('~(-----BEGIN\sCERTIFICATE-----[\s\S]+?-----END\sCERTIFICATE-----)~i', $response['body'], $matches))
             {
-                return [
+                return array(
                     'leaf' => $matches[0][0],
                     'intermediate' => $matches[0][1],
-                ];
+                );
             }
             else
             {

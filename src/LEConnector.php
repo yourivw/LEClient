@@ -93,7 +93,8 @@ class LEConnector
      */
 	private function getNewNonce()
 	{
-		if($this->head($this->newNonce)['status'] !== 200) throw LEConnectorException::NoNewNonceException();
+		$head = $this->head($this->newNonce);
+		if($head['status'] !== 200) throw LEConnectorException::NoNewNonceException();
 	}
 
     /**
